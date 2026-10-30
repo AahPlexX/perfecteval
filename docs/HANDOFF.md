@@ -4,18 +4,18 @@ Updated: 2026-10-30
 
 ## Current state
 
-Perfect Eval is implemented and deterministically checked as a portable, skills-only Agent Plugin at version `0.1.0`.
+Perfect Eval is implemented as a portable, skills-only Agent Plugin at version `0.1.0`.
 
-Core requirements represented in the repository:
+The repository currently satisfies the core product requirements:
 
 - provider/model agnostic;
 - repository/project agnostic;
 - ordinary ChatGPT chat support without subagents;
-- optional use of subagents when available;
+- optional fresh-context/subagent use when available;
 - default human-in-the-loop mode;
 - session command to switch to autonomous mode and back;
-- full default stage ledger with explicit not-applicable handling;
-- all video-derived skills/roles represented;
+- full default stage ledger with explicit `not-applicable` handling;
+- all video-derived skills/roles represented and routed through the full workflow by default;
 - connected GitHub usable as an optional repository capability;
 - no GitHub Actions requirement;
 - convergence limits for review loops;
@@ -45,15 +45,23 @@ A new conversation starts in `human`. The latest explicit command controls the c
 - `skills/first-time-user/`
 - `skills/fix-a-bug/`
 
-## Architecture
+Each specialized skill now declares that it is a stage of Perfect Eval. Unless the user explicitly asks for that stage only, it routes into the complete workflow or continues the remaining ledger sequentially if sibling-skill invocation is unavailable.
 
-See `docs/ADR-0001-portable-skills-only-architecture.md`.
+## Architecture and acceptance
 
-The plugin uses root `plugin.json` with Agent Plugins v1 schema. The portable manifest intentionally omits public-directory publisher metadata until the verified publisher identity is supplied. ChatGPT-specific orchestrator presentation is in `skills/perfect-eval/agents/openai.yaml`. No MCP server is required.
+- Architecture: `docs/ADR-0001-portable-skills-only-architecture.md`
+- Observable behavior scenarios: `docs/ACCEPTANCE.md`
+- Product intent: `docs/INTENT.md`
+- Validation evidence and limits: `docs/VALIDATION.md`
+- User-facing overview: `README.md`
+
+The plugin uses root `plugin.json` with the Agent Plugins v1 schema. Portable packages discover the root `skills/` directory automatically. No MCP server is required.
+
+The root manifest now includes non-identity OpenAI presentation metadata under `extensions.com.openai.interface` so ChatGPT/Codex can present the product as **Perfect Eval** with accurate descriptions, capabilities, starter prompts, brand color, composer icon, and logo. Verified publisher-dependent fields remain intentionally unset.
 
 ## Research basis
 
-Primary/authoritative references used in the implementation:
+Primary/authoritative references used in the implementation include:
 
 - User-provided video: https://youtu.be/S49gppZl8H0
 - Anthropic code review article: https://claude.dev/blog/solving-code-review-at-anthropic/
@@ -62,7 +70,8 @@ Primary/authoritative references used in the implementation:
 - OpenAI plugin docs: https://developers.openai.com/plugins
 - OpenAI plugin packaging: https://developers.openai.com/plugins/build/plugins
 - OpenAI skill docs: https://developers.openai.com/plugins/build/skills
-- Agent Plugins v1 spec: https://agent-plugins.org/specification
+- OpenAI submission metadata: https://developers.openai.com/plugins/deploy/submission
+- Agent Plugins v1 spec/schema: https://agent-plugins.org/specification and https://agent-plugins.org/schemas/1.0.0/plugin.schema.json
 - Agent Skills spec: https://agentskills.io/specification
 - Google Cloud generative AI evaluation overview: https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/evaluation-overview
 - Microsoft Foundry generative AI evaluation guidance: https://learn.microsoft.com/en-us/azure/foundry/how-to/evaluate-generative-ai-app
@@ -71,24 +80,28 @@ The video transcript explicitly identified write-evals, review-loop, first-time-
 
 ## Validation status
 
-Deterministic core-package checks completed successfully. See `docs/VALIDATION.md` for the exact evidence and limits.
+See `docs/VALIDATION.md` for exact evidence.
 
-Validated:
+Current deterministic checks cover:
 
-- root `plugin.json` against the Agent Plugins v1 schema constraints;
-- all eight skill names, descriptions, directory identities, and combined plugin/skill identity lengths;
-- `skills/perfect-eval/agents/openai.yaml` structure and policy fields;
-- square, positive SVG dimensions/viewBoxes for prepared icon and light/dark logos;
-- mandatory no-subagent fallback and session-mode behavior by implementation inspection.
+- Agent Plugins v1 root-manifest schema constraints;
+- current OpenAI presentation-field limits and asset-path rules;
+- all eight skill identities/frontmatter requirements;
+- orchestrator OpenAI skill metadata;
+- square SVG icon/logo requirements;
+- mandatory no-subagent fallback;
+- session-mode semantics;
+- full-stage routing from specialized skills.
 
-Environment limitation: the local container could not resolve `github.com`, so a fresh local clone/plugin-install smoke test was not possible in this session. Repository contents were inspected through the connected GitHub plugin and deterministic checks were run against the committed content retrieved from GitHub. Do not claim clean-install smoke-test evidence until that test is actually run.
+Environment limitation remains: the available local container cannot resolve `github.com`, so a clean archive clone and fresh ChatGPT/plugin-install discovery smoke test has not yet been executed. Do not convert static/package evidence into a claim that installation behavior was observed.
 
-## Known public-submission blocker
+## Public-submission boundary
 
-Do not invent public publisher identity. Final public Plugin Directory submission requires verified publisher/listing details from the actual submitting identity. The repository owner name alone is not proof of the verified OpenAI developer identity. Prepared brand assets and listing directions can be reused once that identity is known.
+Do not invent the verified publisher identity. Final public Plugin Directory submission still needs the actual verified `developerName`, dashboard category, and any other publisher-facing facts required by the submission surface. Package validity, local installation, submission, approval, and publication are separate states.
 
 ## Next logical work
 
-1. Smoke-test plugin discovery and behavior in a clean ChatGPT/plugin environment when that surface is available.
-2. Exercise both session-mode commands in a clean chat and confirm stage-ledger behavior with and without subagents.
-3. Only when the verified publisher identity is supplied, add plugin-level public listing metadata and complete submission-readiness material.
+1. Build the exact repository archive in an environment with repository/network access and perform a clean plugin install/discovery smoke test.
+2. Exercise both session-mode commands in a new ChatGPT conversation and confirm that mode persists only within that conversation.
+3. Exercise one full workflow in an environment without subagents and, separately, with fresh-context workers when available; compare stage-ledger equivalence.
+4. Only after verified publisher identity/category are available, complete public-directory metadata and submission-readiness material.
