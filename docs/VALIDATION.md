@@ -1,7 +1,7 @@
 # Validation report
 
 Date: 2026-10-30
-Validated implementation commit: `9b8e1d16b44c2b7842baaaa840575fb71c1ba06d`
+Core manifest revision validated after publisher-neutral correction: `a633bd4407047d7f03ba1c6df83f1cb2739b3512`
 
 ## Authoritative contracts checked
 
@@ -21,10 +21,10 @@ Result: PASS
 
 - `plugin.json` exists at plugin root.
 - `$schema` matches the canonical Agent Plugins v1 identifier.
-- Manifest validates against the published Agent Plugins v1 JSON schema constraints used in the check.
+- The current publisher-neutral manifest validates against the published Agent Plugins v1 JSON schema constraints used in the check.
 - Plugin name `perfecteval` matches the v1 name pattern and length constraints.
-- OpenAI-specific metadata is isolated under `extensions.com.openai`.
 - No MCP server or hook dependency is declared.
+- Public-directory `interface` metadata is intentionally omitted until a verified publisher identity is supplied; OpenAI documents `interface` as optional for Agent Plugins packages and can derive basic package text from root metadata.
 
 ### Skill inventory
 
@@ -64,21 +64,9 @@ Result: PASS
 - boolean `policy.allow_implicit_invocation`;
 - no unsupported policy keys.
 
-### OpenAI listing metadata
+This supplies ChatGPT/Codex presentation for the orchestrator without inventing plugin-level publisher identity.
 
-Result: PASS for package-backed fields currently present.
-
-Measured values:
-
-- display name: 12 characters (limit 30);
-- short description: 23 characters (limit 30);
-- long description: 552 characters (limit 4000);
-- capabilities: 10 entries (limit 20), longest 65 characters (limit 120);
-- starter prompts: 3 entries, lengths 94 / 89 / 105 characters (limit 128 each);
-- brand color: valid six-digit hex;
-- declared asset paths are relative, under `./assets/`, and contain no traversal.
-
-### Brand assets
+### Prepared brand assets
 
 Result: PASS
 
@@ -87,6 +75,8 @@ Result: PASS
 - `assets/logo-dark.svg`: 256 x 256 with square viewBox.
 - SVG XML parses and dimensions are positive.
 - Light/dark logos share the same geometry.
+
+The assets are intentionally not declared in plugin-level public listing metadata yet.
 
 ### Architecture requirements
 
@@ -106,10 +96,10 @@ Result: PASS by inspection.
 
 ## Environment limitation
 
-The local container available during this build could not resolve `github.com`, so a direct local clone/archive round-trip was not available. Repository contents were instead inspected through the connected GitHub plugin, and deterministic schema/length/YAML/SVG checks were executed against the committed package content retrieved from GitHub.
+The local container available during this build could not resolve `github.com`, so a direct local clone/archive round-trip was not available. Repository contents were instead inspected through the connected GitHub plugin, and deterministic schema/length/YAML/SVG checks were executed against committed content retrieved from GitHub.
 
-This limitation does not change the validation results above, but it means no claim is made that a fresh local/plugin-directory installation was smoke-tested in this session.
+No claim is made that a fresh local/plugin-directory installation was smoke-tested in this session.
 
 ## Public directory readiness boundary
 
-Technical package fields checked above are valid, but public submission is not marked ready because verified publisher identity and any publisher/legal fields required by the final submission flow must come from the actual verified submitting identity. They are intentionally not inferred from the GitHub owner name.
+The portable functional package is implemented and the checks above pass. Public Plugin Directory submission is intentionally not marked ready because `developerName`, category/listing copy, and any other publisher-facing fields that depend on the verified submitting identity must be supplied from that verified identity rather than inferred from the GitHub owner name.
