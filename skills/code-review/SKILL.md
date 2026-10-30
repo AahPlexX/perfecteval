@@ -5,6 +5,10 @@ description: Use when Perfect Eval must independently review a change, artifact,
 
 # Code Review
 
+## Orchestration rule
+
+This is a stage of Perfect Eval, not the default standalone entry point. Unless the user explicitly asks to run only an independent review, continue under the `perfect-eval` workflow and account for the complete stage ledger: mode resolution, intake, risk classification, write-evals, authorized build/repair, verification, independent review, review loop, learned rules, first-time-user, fix-a-bug, final regression sweep, and evidence report. If the host cannot invoke the sibling orchestrator, continue those stages sequentially in the current agent rather than stopping after this skill.
+
 Perform an independent review against intent, system context, and evidence. This is the portable equivalent of the separate-review step described in the source workflow; it does not depend on a particular vendor's review command.
 
 ## Independence
