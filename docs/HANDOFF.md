@@ -49,7 +49,7 @@ A new conversation starts in `human`. The latest explicit command controls the c
 
 See `docs/ADR-0001-portable-skills-only-architecture.md`.
 
-The plugin uses root `plugin.json` with Agent Plugins v1 schema and OpenAI-specific presentation metadata under `extensions.com.openai`. No MCP server is required.
+The plugin uses root `plugin.json` with Agent Plugins v1 schema. The portable manifest intentionally omits public-directory publisher metadata until the verified publisher identity is supplied. ChatGPT-specific orchestrator presentation is in `skills/perfect-eval/agents/openai.yaml`. No MCP server is required.
 
 ## Research basis
 
@@ -71,26 +71,24 @@ The video transcript explicitly identified write-evals, review-loop, first-time-
 
 ## Validation status
 
-Deterministic package checks completed successfully. See `docs/VALIDATION.md` for the exact evidence and limits.
+Deterministic core-package checks completed successfully. See `docs/VALIDATION.md` for the exact evidence and limits.
 
 Validated:
 
 - root `plugin.json` against the Agent Plugins v1 schema constraints;
 - all eight skill names, descriptions, directory identities, and combined plugin/skill identity lengths;
 - `skills/perfect-eval/agents/openai.yaml` structure and policy fields;
-- OpenAI listing text/prompt/capability limits for the fields currently present;
-- brand color and relative asset paths;
-- square, positive SVG dimensions/viewBoxes for icon and light/dark logos;
+- square, positive SVG dimensions/viewBoxes for prepared icon and light/dark logos;
 - mandatory no-subagent fallback and session-mode behavior by implementation inspection.
 
 Environment limitation: the local container could not resolve `github.com`, so a fresh local clone/plugin-install smoke test was not possible in this session. Repository contents were inspected through the connected GitHub plugin and deterministic checks were run against the committed content retrieved from GitHub. Do not claim clean-install smoke-test evidence until that test is actually run.
 
 ## Known public-submission blocker
 
-Do not invent public publisher identity. Final public Plugin Directory submission requires verified publisher/listing details from the actual submitting identity. The repository owner name alone is not proof of the verified OpenAI developer identity.
+Do not invent public publisher identity. Final public Plugin Directory submission requires verified publisher/listing details from the actual submitting identity. The repository owner name alone is not proof of the verified OpenAI developer identity. Prepared brand assets and listing directions can be reused once that identity is known.
 
 ## Next logical work
 
 1. Smoke-test plugin discovery and behavior in a clean ChatGPT/plugin environment when that surface is available.
 2. Exercise both session-mode commands in a clean chat and confirm stage-ledger behavior with and without subagents.
-3. Only when the verified publisher identity is supplied, complete public listing metadata and submission-readiness material.
+3. Only when the verified publisher identity is supplied, add plugin-level public listing metadata and complete submission-readiness material.
