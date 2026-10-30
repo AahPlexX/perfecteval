@@ -5,6 +5,10 @@ description: Use when Perfect Eval must iteratively build or repair a target, ve
 
 # Review Loop
 
+## Orchestration rule
+
+This is a stage of Perfect Eval, not the default standalone entry point. Unless the user explicitly asks to run only the review loop, continue under the `perfect-eval` workflow and account for the complete stage ledger: mode resolution, intake, risk classification, write-evals, authorized build/repair, verification, independent review, review loop, learned rules, first-time-user, fix-a-bug, final regression sweep, and evidence report. If the host cannot invoke the sibling orchestrator, continue those stages sequentially in the current agent rather than stopping after this skill.
+
 Run the builder -> verifier -> reviewer cycle until the target is acceptable, a stopping rule fires, or evidence shows the approach must be reconsidered.
 
 ## Roles
