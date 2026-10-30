@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "perfecteval",
   "version": "0.1.0",
-  "description": "Provider-agnostic evaluation workflow for designing, running, diagnosing, and maintaining trustworthy evals for models, agents, prompts, workflows, and repository-backed systems.",
+  "description": "Provider-agnostic evaluation and review workflows for proving work is done, finding regressions, comparing candidates, diagnosing failures, and maintaining durable quality gates across models, agents, prompts, products, and repositories.",
   "repository": "https://github.com/AahPlexX/perfecteval",
   "keywords": [
     "evaluation",
@@ -12,6 +12,36 @@
     "testing",
     "benchmarking",
     "regression",
+    "review",
     "quality"
-  ]
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Perfect Eval",
+        "shortDescription": "Evidence-first AI evals",
+        "longDescription": "Design and run evidence-first evaluations for models, agents, prompts, applications, features, bugs, and repository-backed work. Perfect Eval classifies risk, writes capability and regression evals, verifies outcomes, performs an independent review, iterates with convergence limits, learns durable review rules, tests user-facing work from a first-time-user perspective, and diagnoses reproducible bugs. It is model/provider agnostic, repository agnostic, works without subagents, and supports session-scoped human-in-the-loop or autonomous operation.",
+        "capabilities": [
+          "Classify change and failure risk",
+          "Turn requirements and failures into evals",
+          "Verify capability and regression behavior",
+          "Independently review work for missed failures",
+          "Iterate build-verify-review loops with stop rules",
+          "Convert recurring misses into learned review rules",
+          "Test user-facing work from a first-time-user perspective",
+          "Diagnose root causes and create regression protection",
+          "Compare models, providers, prompts, agents, or workflows fairly",
+          "Use connected repository evidence without requiring CI automation"
+        ],
+        "defaultPrompt": [
+          "Use Perfect Eval to prove whether this work is actually complete and identify any regressions.",
+          "Use Perfect Eval to compare these candidates under the same task bank and decision rules.",
+          "Use Perfect Eval to evaluate this repository change, diagnose failures, and create regression protection."
+        ],
+        "brandColor": "#111111",
+        "composerIcon": "./assets/icon.svg",
+        "logo": "./assets/logo-light.svg"
+      }
+    }
+  }
 }
