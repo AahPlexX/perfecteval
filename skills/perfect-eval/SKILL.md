@@ -1,316 +1,238 @@
 ---
 name: perfect-eval
-description: Use when a user wants to design, run, compare, diagnose, validate, benchmark, or maintain evaluations for an AI model, agent, prompt, workflow, application, or repository-backed system; especially for regression prevention, model/provider comparison, quality gates, grader design, or converting failures into repeatable tests.
+description: Use when a user wants to design, run, compare, diagnose, validate, benchmark, review, or maintain evaluations for an AI model, agent, prompt, workflow, application, feature, bug fix, or repository-backed system; especially for proving work is done, preventing regressions, comparing providers/models, or autonomously iterating until evidence supports completion.
 ---
 
 # Perfect Eval
 
-Build trustworthy evaluations that measure the user's actual task rather than a provider, model family, benchmark fashion, or implementation detail.
+Run an evidence-first evaluation and review system that is provider-agnostic, model-agnostic, repository-agnostic, and usable in ordinary ChatGPT chat as well as environments with subagents, shells, browsers, local workspaces, or other advanced execution tools.
 
-## Core contract
+Perfect Eval must never require a particular model vendor, API, SDK, agent framework, repository layout, CI provider, programming language, or subagent feature.
 
-Operate provider-agnostically and project-agnostically.
+## Session control
 
-Do not require a specific model vendor, API, SDK, repository layout, CI system, programming language, benchmark framework, or agent harness. Use the capabilities available in the current host. If a connected repository source such as GitHub is available and relevant, use it to inspect evidence or make authorized repository changes. If local files, shell, Python, tracing, browser, or other tools are available, use only the capabilities needed for the task.
+Perfect Eval has two execution modes. Read `references/session-mode.md` whenever mode is relevant.
 
-Never claim an eval was executed, a test passed, a repository was inspected, or a metric was measured without tool-produced evidence. Distinguish clearly between:
+Canonical commands:
 
-- designed: the evaluation specification exists but has not been executed;
-- executed: trials or deterministic checks actually ran;
-- calibrated: automated grading was compared with trusted human labels or another accepted reference;
-- regression-protected: previously demonstrated failures are represented in a maintained regression suite.
+- `/perfecteval mode human`
+- `/perfecteval mode autonomous`
 
-Prefer evidence over confidence language. Mark unsupported claims as unverified.
+Rules:
 
-## What counts as success
+1. Every new conversation defaults to `human` mode.
+2. The latest explicit mode command in the current conversation wins immediately.
+3. The chosen mode remains active for the rest of that conversation until the user changes it.
+4. Do not claim cross-chat persistence; a new chat resets to `human` unless the host explicitly provides durable state.
+5. `autonomous` mode removes routine approval pauses but never expands permissions, publication authority, spending authority, destructive-action authority, safety boundaries, repository rules, or mandatory human approvals.
 
-An evaluation is useful only when it answers a concrete decision question, such as:
+## Mandatory default stage ledger
 
-- Did this change improve the target behavior without breaking previously working behavior?
-- Which candidate performs better on the user's real task distribution?
-- Is this system reliable enough for repeated use?
-- Where does the system fail, and are those failures caused by the system, the grader, or the environment?
-- Can a new model, provider, prompt, tool, or workflow replace the current one without unacceptable regression?
+For every substantive Perfect Eval run, execute every stage below in order. A stage may return `not-applicable` with a concrete reason, but it must not silently disappear.
 
-Do not optimize for a single aggregate score when the user needs a decision across multiple dimensions.
+1. **Mode resolution** — determine current `human` or `autonomous` mode from the conversation.
+2. **Target/evidence intake** — identify the subject, intended outcome, baseline/candidate if relevant, available tools, governing requirements, and execution limits.
+3. **Risk classifier** — run the `risk-classifier` workflow before choosing evaluation depth.
+4. **Write evals** — run the `write-evals` workflow to produce capability/regression tasks, graders, hard gates, and decision rules before judging success.
+5. **Build or repair target** — only when the user's task includes implementation/repair and mutation is authorized. Otherwise mark this stage not-applicable.
+6. **Verifier** — execute every applicable eval and preserve evidence. This role is part of `review-loop` and must not self-certify work it created.
+7. **Independent code/review pass** — run `code-review` to search for failures the explicit evals missed.
+8. **Review loop** — run `review-loop` until all hard evals pass and blocking findings are cleared, or a convergence/stop rule fires.
+9. **Learned rules** — run `learned-rules` to decide whether repeated misses/noise warrant a durable rule or grader change.
+10. **First-time-user test** — run `first-time-user` for user-facing experiences; otherwise mark not-applicable with reason.
+11. **Fix-a-bug** — run `fix-a-bug` when any reproducible defect remains; if nothing is failing, explicitly mark `not-applicable: no defect to diagnose`.
+12. **Final regression sweep** — re-run affected capability and regression checks after the last change.
+13. **Evidence report** — report stage statuses, verified results, regressions, uncertainty, artifacts, and next highest-value action.
 
-## Autonomous workflow
+The dedicated sibling skills provide detailed procedures. If the host can invoke sibling skills directly, use them. If it cannot, execute the contracts above and the rules below in the current agent; sibling-skill invocation is an optimization, not a correctness dependency.
 
-### 1. Establish the evaluation target
+## No-subagent guarantee
 
-Identify, from the current conversation and available evidence:
+Perfect Eval must work fully in ordinary ChatGPT chat where no subagents can be spawned.
+
+When subagents are available, they may be used for fresh-context independence or parallel read-only analysis. When they are unavailable, the same agent executes builder, verifier, reviewer, classifier, first-time-user, and bug-diagnosis roles sequentially.
+
+For single-agent role isolation:
+
+1. finish and freeze the current role's evidence record;
+2. switch to the next role's rubric explicitly;
+3. reread the governing requirements/evidence appropriate to that role;
+4. do not treat the previous role's unverified conclusion as fact;
+5. actively search for disconfirming evidence;
+6. record the independence limitation when it materially affects confidence.
+
+Never skip a required stage merely because fresh context windows, parallel workers, Work mode, or Codex are unavailable.
+
+## Evidence contract
+
+Never claim an eval was executed, a test passed, a repository was inspected, a screenshot was checked, or a metric was measured without tool-produced or directly observable evidence.
+
+Use these status terms precisely:
+
+- `designed`: an evaluation specification exists but was not executed;
+- `executed`: the relevant checks/trials actually ran;
+- `calibrated`: an automated grader was compared with trusted human labels or another accepted reference;
+- `regression-protected`: a demonstrated failure is represented by maintained regression coverage.
+
+If execution is unavailable, produce the strongest executable design/static analysis possible and mark runtime claims unverified.
+
+## Evaluation target
+
+Identify:
 
 - subject under test;
 - user-visible job to be done;
-- unit of evaluation: response, turn, conversation, trace, artifact, repository change, end state, or other outcome;
+- unit of evaluation: response, turn, conversation, trace, artifact, feature, repository change, final state, or other outcome;
 - baseline and candidate, when comparison is requested;
-- hard constraints that must never regress;
+- non-negotiable constraints;
 - quality dimensions that may trade off;
-- relevant cost, latency, reliability, safety, or resource constraints;
-- available evidence sources and execution capabilities.
+- risk/cost/latency/reliability/safety constraints;
+- available evidence and execution capabilities.
 
-Do not ask for information already present. If some details are missing but the task can proceed, record them as explicit assumptions or open questions and continue with the strongest defensible evaluation design.
+Do not ask for information already present. If something is missing but work can proceed, record the assumption/open question and continue unless human mode reaches a defined approval gate.
 
-### 2. Inspect real evidence before inventing tests
+## Evidence sourcing
 
-Use the most direct evidence available, in this order when applicable:
+Prefer, in order when applicable:
 
 1. explicit user requirements and acceptance criteria;
-2. authoritative domain or technical documentation for time-sensitive facts;
-3. repository rules, implementation, tests, issues, pull requests, traces, logs, or product artifacts;
-4. representative production or historical examples;
-5. trusted human labels, reference answers, or known-good outcomes;
-6. synthetic examples added to improve coverage, never as the sole evidence when real examples are available.
+2. authoritative current documentation for time-sensitive facts;
+3. repository instructions, implementation, tests, issues, pull requests, traces, logs, or product artifacts;
+4. representative production/historical examples;
+5. trusted human labels or known-good outcomes;
+6. synthetic examples used to fill coverage gaps, never as the only evidence when real examples exist.
 
-When repository access is available, inspect before editing. Identify existing test conventions, evaluation assets, requirements, changed surfaces, and affected contracts. Respect repository instructions and default branch rules. Do not add GitHub Actions, branches, or unrelated automation unless the user asks for them.
+When repository access is available, inspect before editing. Reuse existing test/eval conventions. Do not add GitHub Actions, branches, CI systems, or unrelated automation unless the user explicitly asks for them.
 
-### 3. Write the eval contract before scoring
+## Eval design
 
-Define the decision contract in plain language before generating metrics.
+Read `references/eval-contract.md` for durable specifications and `references/methodology.md` for source-backed rationale.
 
-For each evaluation suite, capture:
+Every eval suite should define:
 
-- objective;
-- target behavior;
-- out-of-scope behavior;
-- task population or intended traffic distribution;
-- capability suite criteria;
-- regression suite criteria;
-- hard gates;
-- graded dimensions;
-- pass threshold or decision rule;
-- expected sources of nondeterminism;
-- minimum evidence needed to make a decision;
-- conditions that invalidate the run.
+- objective and decision question;
+- target behavior and out-of-scope behavior;
+- intended task distribution;
+- capability suite and regression suite;
+- hard gates and soft dimensions;
+- pass threshold/decision rule;
+- expected nondeterminism;
+- minimum evidence needed to decide;
+- invalidation conditions.
 
-Hard gates should represent conditions that cannot be traded away. Soft dimensions may receive partial credit or weighted scoring.
+Build balanced coverage from requirements, manual checks, bugs, incidents, support cases, production examples, known failures, and realistic use. When starting from zero, roughly 20-50 high-signal cases can be a useful initial target when practical, then grow from observed failures and coverage gaps.
 
-### 4. Build a balanced task bank
+Include relevant happy paths, edge cases, adversarial cases, ambiguous inputs, long-context/multi-turn behavior, tool failures, should-do cases, should-not-do cases, misuse/over-triggering cases, and known regressions.
 
-Source tasks from requirements, manual checks, bugs, support incidents, production examples, known failure modes, and realistic usage.
+Every important task must be solvable without hidden grader expectations. Create a reference outcome, executable oracle, known-good artifact, or expert-accepted example when feasible.
 
-When starting from zero, a small high-signal set is better than a large low-quality synthetic set. Aim for roughly 20-50 tasks when that scale is practical, then grow from observed failures and coverage gaps.
-
-Cover, when relevant:
-
-- common happy paths;
-- legitimate alternative formulations;
-- edge cases;
-- adversarial cases;
-- ambiguous or underspecified inputs;
-- long-context or multi-turn cases;
-- tool failures and partial failures;
-- should-do cases;
-- should-not-do cases;
-- misuse or over-triggering cases;
-- previously observed regressions.
-
-Avoid class imbalance that can reward a trivial strategy.
-
-### 5. Prove tasks are fair
-
-Every task must state enough information for a capable system to succeed without guessing hidden grader expectations.
-
-For each important task, create a reference solution, reference outcome, executable oracle, or expert-accepted example when feasible. Use it to verify that the task and grader are solvable.
-
-If a strong system repeatedly scores zero, audit the task, grader, harness, and environment before concluding the system lacks capability.
-
-### 6. Select graders by evidence strength
+## Graders
 
 Prefer the least subjective grader that correctly measures the requirement.
 
-Use deterministic or code-based graders for objectively verifiable conditions such as:
+Use deterministic/code-based graders for objectively verifiable properties such as schema validity, executable correctness, tests, static analysis, state changes, exact factual fields, tool-call validity when the path is part of the contract, and measurable latency/token/cost thresholds.
 
-- exact or structured output constraints;
-- schema validity;
-- executable correctness;
-- unit, integration, or regression tests;
-- static analysis;
-- state changes;
-- factual field checks against authoritative data;
-- tool-call validity when the path itself is part of the contract;
-- latency, token, cost, or count thresholds when measurement is available.
+Use model-based graders for genuinely semantic or open-ended properties. Prefer explicit assertions, anchored pointwise rubrics, reference-guided scoring, blinded pairwise comparison, and separate judges for materially distinct dimensions.
 
-Use model-based graders when the property is genuinely semantic, open-ended, or difficult to encode deterministically. Prefer:
+Use humans for trusted labels, judge calibration, high-stakes/expert-only judgment, ambiguous cases, and periodic spot checks.
 
-- pass/fail against explicit assertions;
-- pointwise scoring with anchored rubric examples;
-- reference-guided grading;
-- blinded pairwise comparison for candidate-vs-baseline decisions;
-- separate judges for materially different dimensions rather than one vague overall-quality judge.
+A model judge is a measurement instrument, not unquestioned truth. Allow `unknown` or `insufficient evidence` when warranted.
 
-Use human evaluation for:
+## Outcome-first review
 
-- creating trusted labels;
-- calibrating model judges;
-- high-stakes or expert-only judgments;
-- ambiguous cases;
-- periodic spot checks of automated grading.
+Grade the final outcome or artifact before forcing a specific internal trajectory. Only require a particular tool/path/sequence when the path itself is part of safety, authorization, compliance, or interaction correctness.
 
-Do not use a model judge as unquestioned ground truth. Give a judge an explicit `unknown` or `insufficient evidence` outcome when appropriate.
+Do not penalize a valid solution merely for using an unanticipated implementation approach.
 
-### 7. Grade outcomes before paths
+## Nondeterminism and comparisons
 
-Prefer evaluating the final outcome or artifact over forcing a specific sequence of internal steps.
-
-Only grade a tool choice, call sequence, reasoning step, or implementation path when that path is itself a requirement, such as safety, authorization, compliance, or a necessary interaction contract.
-
-Do not penalize a valid solution merely because it differs from an anticipated approach.
-
-### 8. Handle partial success deliberately
-
-For multi-part tasks, separate hard gates from scored dimensions.
-
-Use binary scoring when every condition is mandatory. Use weighted or partial-credit scoring when intermediate success is meaningful. Use a hybrid when some requirements are mandatory while others represent quality gradients.
-
-Do not hide a hard failure inside a high average score.
-
-### 9. Measure nondeterminism
-
-When the evaluated system can vary across runs, run multiple independent trials when execution resources allow.
+When behavior varies across runs and resources allow, use multiple isolated trials.
 
 Use:
 
-- pass@1 for first-attempt success;
-- pass@k when at least one successful solution across k attempts is the relevant product behavior;
-- pass^k when consistent success across all k attempts is the relevant product behavior;
-- per-task success rates and confidence intervals when sample size supports them.
+- `pass@1` for first-attempt success;
+- `pass@k` when at least one success across k attempts matches the product behavior;
+- `pass^k` when consistent success across all k attempts is required;
+- per-task success rates/confidence intervals when sample sizes support them.
 
-Keep trials isolated. Shared files, caches, history, leaked answers, resource exhaustion, or other correlated state can invalidate the result.
+For candidate comparisons, keep task bank, decision rules, environment, and tool access equivalent unless a difference is intentionally under test. Blind candidate identity from judges when practical, randomize pairwise ordering when practical, report ties/uncertainty, and preserve per-task results behind aggregates.
 
-### 10. Compare candidates fairly
+## Failure analysis
 
-When comparing prompts, models, providers, agents, or workflows:
+Inspect failed trials, surprising passes, borderline scores, grader disagreement, human/automated disagreement, regressions, and unexpected valid solutions.
 
-- use the same task bank and decision rules;
-- keep environment and tool access equivalent unless the difference is intentionally under test;
-- blind candidate identity from human or model judges when practical;
-- randomize response order in pairwise judging when practical;
-- control obvious confounds such as response length when the rubric does not reward verbosity;
-- report ties and uncertainty;
-- preserve per-task results instead of reporting only an aggregate winner.
+Classify important failures as:
 
-A judge may be from the same or a different provider as the subject under test. Record that fact. Do not claim evaluator independence when it does not exist.
-
-### 11. Read traces and transcripts
-
-Aggregate scores are not sufficient evidence.
-
-Inspect a meaningful sample of:
-
-- failed trials;
-- surprising passes;
-- borderline scores;
-- disagreements between graders;
-- disagreements between automated and human grading;
-- regressions introduced by a candidate;
-- cases where the agent found an unanticipated valid solution.
-
-Classify each important failure as one of:
-
-- system/model failure;
-- prompt/instruction failure;
-- retrieval/context failure;
-- tool or integration failure;
-- harness/environment failure;
-- task-specification failure;
-- grader failure;
-- data-distribution or coverage gap;
+- system/model;
+- prompt/instruction;
+- retrieval/context;
+- tool/integration;
+- harness/environment;
+- task specification;
+- grader;
+- data/coverage;
 - inconclusive.
 
-Do not fix the system when the eval is the broken component.
+Do not modify the target when the eval itself is the broken component.
 
-### 12. Turn failures into durable regressions
-
-When a real failure is understood, add or propose a minimal regression case that captures the behavior without overfitting to irrelevant details.
-
-Run both:
-
-- capability evals that expose room for improvement; and
-- regression evals that protect behaviors already expected to work.
-
-As capability tasks become reliably solved, promote them into the regression suite. When an eval saturates, add harder or more representative tasks instead of treating a ceiling score as proof that the system cannot improve.
-
-### 13. Iterate one causal change at a time when possible
-
-Use eval results to change the smallest relevant component: prompt, context, retrieval, tool contract, implementation, model, routing, or grader.
-
-Re-run the affected capability suite and the regression suite after each meaningful change. Avoid making many unrelated changes before measurement unless the user explicitly wants a broad redesign.
-
-### 14. Keep the eval suite alive
-
-Treat evaluation assets as maintained product artifacts.
-
-Continuously add cases from:
-
-- production failures;
-- user feedback;
-- bug reports;
-- new requirements;
-- model/provider migrations;
-- tool changes;
-- newly discovered adversarial strategies;
-- grader disagreements.
-
-When repository mutation is authorized and no project convention already exists, prefer a small, readable evaluation area such as `evals/perfecteval/` rather than scattering files throughout the repository. Adapt to existing project conventions when they exist.
+Every understood real failure should become a candidate regression case. Promote reliably solved capability tasks into regression protection. When a suite saturates, add harder/more representative cases rather than treating a ceiling score as proof that no improvement is possible.
 
 ## Repository mode
 
-When a repository is part of the task and a connected GitHub capability is available:
+Read `references/repository-mode.md` when source control is part of the task.
 
-1. identify the exact repository and default branch;
-2. read repository instructions and relevant documentation first;
-3. inspect the implementation, existing tests, changed files, issues, and pull requests needed to understand the target behavior;
-4. derive eval tasks from repository evidence rather than generic coding benchmarks;
-5. keep repository reads separate from mutations;
-6. make changes only when the user has authorized repository mutation;
-7. never create workflow automation solely because an eval exists;
-8. after mutation, update project documentation that must remain accurate for future handoff;
-9. report exact files changed and evidence obtained.
+If a connected GitHub capability is available, use it only for repository operations it actually supports. Repository browsing is not test execution. Keep reads separate from mutations, honor repository rules, preserve concurrent work, and update project documentation when mutations would otherwise make it stale.
 
-If execution of repository tests is unavailable, do not convert inspection into a false pass/fail claim. Produce the executable evaluation plan, static evidence, and any repository artifacts that can be created honestly, and mark runtime results unverified.
+Perfect Eval does not require GitHub Actions and must not add them unless the user explicitly requests them.
 
-## Research mode
+## Human-in-the-loop behavior
 
-When evaluation criteria depend on current specifications, APIs, standards, laws, pricing, model behavior, or other time-sensitive facts, verify them against current authoritative sources before encoding them into an eval.
+In `human` mode, pause only at meaningful gates, normally:
 
-Prefer first-party documentation, standards bodies, primary research, or official repositories. Record retrieval date and source URLs in durable eval documentation when repository artifacts are being created.
+- after risk classification + eval contract, before material mutation/build/fix work;
+- when an unresolved product/architecture/policy/high-risk tradeoff requires judgment not supplied by authoritative requirements;
+- before persisting a newly learned rule that changes future behavior;
+- before an irreversible/materially destructive action not already authorized;
+- before final acceptance when business/taste/expert judgment is inherently human or a mandatory human reviewer is required.
 
-Do not turn a third-party summary into a grader requirement without primary-source corroboration.
+Routine read-only research, inspection, deterministic verification, and already-authorized changes do not require redundant approval.
 
-## Required result shape
+## Autonomous behavior
 
-Return a concise result that still preserves decision-critical evidence:
+In `autonomous` mode, proceed through all routine stages without approval pauses for the rest of the current conversation. Make evidence-backed, preferably reversible decisions within existing authorization. Record assumptions and material choices.
 
-- **Status:** designed / executed / calibrated / regression-protected;
+Stop only when a required permission, credential, safety/legal boundary, mandatory external human approval, or irreversible action cannot legitimately be delegated.
+
+## Required final result
+
+Report:
+
+- **Mode:** human or autonomous;
+- **Overall status:** designed / executed / calibrated / regression-protected;
 - **Target:** what was evaluated;
-- **Decision:** pass, fail, candidate preference, inconclusive, or not yet executable;
+- **Decision:** pass, fail, candidate preference, inconclusive, or not executable;
+- **Risk tier:** low / medium / high with rationale;
+- **Stage ledger:** every mandatory stage with `passed`, `failed`, or `not-applicable` and evidence/reason;
 - **Hard gates:** pass/fail with evidence;
-- **Key metrics:** per-dimension and aggregate only when meaningful;
-- **Regressions:** any behavior that got worse;
+- **Key metrics:** only those that answer the decision question;
+- **Regressions:** behavior that got worse;
 - **Failure analysis:** system vs. eval vs. environment;
-- **Uncertainty:** missing evidence, judge calibration gaps, or execution limits;
-- **Artifacts:** tasks, rubrics, reports, or repository files created/updated;
-- **Next highest-value action:** the single most useful follow-up based on the evidence.
+- **Uncertainty:** missing evidence, calibration gaps, or execution limits;
+- **Artifacts:** tasks, rubrics, reports, code/repository files created or updated;
+- **Next highest-value action:** one evidence-based follow-up.
 
-For comparisons, include per-task or per-category differences sufficient to explain the decision.
+## Invalidation conditions
 
-## Stop and invalidate conditions
+Do not present a result as trustworthy when any materially decision-relevant condition holds:
 
-Do not present a result as trustworthy when any of these materially affect the decision:
-
-- the task is ambiguous or hides grader-only requirements;
-- the reference solution cannot satisfy the grader;
-- the harness leaks answers or shared state across trials;
-- the grader rewards a loophole instead of the intended behavior;
-- the test distribution is materially unlike the intended use;
+- hidden or ambiguous task requirements;
+- reference outcome cannot satisfy the grader;
+- answer leakage/shared state invalidates trials;
+- grader rewards a loophole instead of intended behavior;
+- test distribution is materially unlike intended use;
 - required authoritative facts are unverified;
-- the candidate and baseline did not receive comparable conditions;
-- the automated judge has not been calibrated where human judgment is the true target;
-- execution evidence is missing for claims that require execution.
+- baseline and candidate did not receive comparable conditions;
+- subjective automated judging lacks necessary calibration;
+- execution evidence is missing for execution-dependent claims.
 
-In these cases, repair the evaluation first or report the result as inconclusive.
-
-## Reference material
-
-Read `references/methodology.md` for the evidence-backed methodology and source rationale. Read `references/eval-contract.md` when creating a durable evaluation specification. Read `references/repository-mode.md` when the task uses a source repository.
+Repair the evaluation first or report the result as inconclusive.
