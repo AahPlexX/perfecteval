@@ -48,6 +48,8 @@ Every substantive Perfect Eval run accounts for every stage below. A stage can b
 - `first-time-user` — fresh-user evaluation without implementation knowledge
 - `fix-a-bug` — reproduce, diagnose root cause, repair, and regression-protect failures
 
+The specialized skills are stages of the full workflow rather than competing default entry points. Unless the user explicitly requests only one stage, each specialized skill routes back into the complete Perfect Eval ledger or continues it sequentially when sibling-skill invocation is unavailable.
+
 ## Works without subagents
 
 Subagents are optional. If the host can spawn fresh-context workers, Perfect Eval may use them for independence or safe parallelism. If not, the primary agent executes the same roles sequentially and preserves role isolation by freezing evidence before switching roles and refusing to treat earlier unverified conclusions as facts.
@@ -80,12 +82,14 @@ See `skills/perfect-eval/references/methodology.md` for the evidence-backed synt
 
 ## Plugin shape
 
-Perfect Eval uses the portable Agent Plugins v1 root `plugin.json` format and is skills-only: no MCP server, external runtime service, provider API key, or CI integration is required for the core workflow.
+Perfect Eval uses the portable Agent Plugins v1 root `plugin.json` format and is skills-only: no MCP server, external runtime service, provider API key, or CI integration is required for the core workflow. Portable packages discover the root `skills/` directory automatically.
 
-ChatGPT-specific presentation for the orchestrator lives in `skills/perfect-eval/agents/openai.yaml`. Plugin-level public-directory listing metadata is intentionally not embedded yet because OpenAI requires the developer name to correspond to the verified publisher identity. The prepared brand assets remain under `assets/` for that future listing step.
+The root manifest includes non-identity OpenAI presentation metadata under `extensions.com.openai.interface`: the user-facing `Perfect Eval` name, descriptions, capabilities, starter prompts, brand color, composer icon, and logo. These fields improve ChatGPT/Codex presentation without inventing publisher identity.
+
+ChatGPT-specific presentation for the orchestrator also lives in `skills/perfect-eval/agents/openai.yaml`. Verified publisher-dependent fields such as `developerName`, category, and any future legal/support listing facts remain intentionally unset until they are supplied from the actual verified submitting identity.
 
 ## Current status
 
 Version: `0.1.0`
 
-The repository contains the implementation, brand assets, research references, deterministic validation evidence, and current handoff documentation. Public Plugin Directory submission still requires publisher/listing facts that must come from the verified submitting identity rather than being inferred from the repository owner.
+The repository contains the implementation, brand assets, research references, deterministic validation evidence, acceptance scenarios, and current handoff documentation. The functional package is implemented; public Plugin Directory submission remains a separate state because verified publisher/listing facts and a clean install/discovery smoke test must not be inferred or fabricated.
