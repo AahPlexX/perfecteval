@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title desc">
+  <title id="title">Perfect Eval</title>
+  <desc id="desc">A circular evaluation loop surrounding a verified check mark.</desc>
+  <rect width="256" height="256" rx="52" fill="#F7F7F5"/>
+  <path d="M128 42a86 86 0 0 1 75 44" fill="none" stroke="#111111" stroke-width="16" stroke-linecap="round"/>
+  <path d="M214 128a86 86 0 0 1-44 75" fill="none" stroke="#111111" stroke-width="16" stroke-linecap="round"/>
+  <path d="M128 214a86 86 0 0 1-75-44" fill="none" stroke="#111111" stroke-width="16" stroke-linecap="round"/>
+  <path d="M42 128a86 86 0 0 1 44-75" fill="none" stroke="#111111" stroke-width="16" stroke-linecap="round"/>
+  <path d="M82 129l29 29 63-69" fill="none" stroke="#111111" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="128" cy="42" r="9" fill="#111111"/>
+  <circle cx="214" cy="128" r="9" fill="#111111"/>
+  <circle cx="128" cy="214" r="9" fill="#111111"/>
+</svg>
