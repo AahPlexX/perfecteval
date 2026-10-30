@@ -1,0 +1,9 @@
+interface:
+  display_name: Perfect Eval
+  short_description: Build and run trustworthy evals
+  default_prompt: Evaluate this system with a provider-agnostic, evidence-based eval suite and report regressions.
+policy:
+  products:
+    - CHAT
+    - CODEX
+  allow_implicit_invocation: true
