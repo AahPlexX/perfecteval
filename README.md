@@ -72,6 +72,7 @@ The initial workflow synthesis was researched on 2026-10-30 from:
 - OpenAI evaluation best practices: https://developers.openai.com/api/docs/guides/evaluation-best-practices
 - OpenAI plugin and skills documentation: https://developers.openai.com/plugins
 - Agent Plugins v1 specification: https://agent-plugins.org/specification
+- Agent Skills specification: https://agentskills.io/specification
 - Google Cloud generative AI evaluation overview: https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/evaluation-overview
 - Microsoft Foundry generative AI evaluation guidance: https://learn.microsoft.com/en-us/azure/foundry/how-to/evaluate-generative-ai-app
 
@@ -79,10 +80,12 @@ See `skills/perfect-eval/references/methodology.md` for the evidence-backed synt
 
 ## Plugin shape
 
-Perfect Eval uses the portable Agent Plugins v1 root `plugin.json` format with OpenAI-specific presentation metadata isolated under `extensions.com.openai`. It is skills-only: no MCP server, external runtime service, provider API key, or CI integration is required for the core workflow.
+Perfect Eval uses the portable Agent Plugins v1 root `plugin.json` format and is skills-only: no MCP server, external runtime service, provider API key, or CI integration is required for the core workflow.
+
+ChatGPT-specific presentation for the orchestrator lives in `skills/perfect-eval/agents/openai.yaml`. Plugin-level public-directory listing metadata is intentionally not embedded yet because OpenAI requires the developer name to correspond to the verified publisher identity. The prepared brand assets remain under `assets/` for that future listing step.
 
 ## Current status
 
 Version: `0.1.0`
 
-The repository contains the implementation and internal handoff documentation. Public Plugin Directory submission still requires publisher/listing facts that must come from the verified submitting identity rather than being inferred from the repository owner.
+The repository contains the implementation, brand assets, research references, deterministic validation evidence, and current handoff documentation. Public Plugin Directory submission still requires publisher/listing facts that must come from the verified submitting identity rather than being inferred from the repository owner.
