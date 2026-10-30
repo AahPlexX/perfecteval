@@ -4,9 +4,9 @@ Updated: 2026-10-30
 
 ## Current state
 
-Perfect Eval is implemented as a portable, skills-only Agent Plugin at version `0.1.0`.
+Perfect Eval is implemented and deterministically checked as a portable, skills-only Agent Plugin at version `0.1.0`.
 
-Core requirements currently represented in the repository:
+Core requirements represented in the repository:
 
 - provider/model agnostic;
 - repository/project agnostic;
@@ -63,6 +63,7 @@ Primary/authoritative references used in the implementation:
 - OpenAI plugin packaging: https://developers.openai.com/plugins/build/plugins
 - OpenAI skill docs: https://developers.openai.com/plugins/build/skills
 - Agent Plugins v1 spec: https://agent-plugins.org/specification
+- Agent Skills spec: https://agentskills.io/specification
 - Google Cloud generative AI evaluation overview: https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/evaluation-overview
 - Microsoft Foundry generative AI evaluation guidance: https://learn.microsoft.com/en-us/azure/foundry/how-to/evaluate-generative-ai-app
 
@@ -70,24 +71,26 @@ The video transcript explicitly identified write-evals, review-loop, first-time-
 
 ## Validation status
 
-Repository/package validation should verify:
+Deterministic package checks completed successfully. See `docs/VALIDATION.md` for the exact evidence and limits.
 
-- `plugin.json` against Agent Plugins v1 schema;
-- every immediate child of `skills/` contains exactly one valid `SKILL.md`;
-- YAML frontmatter parses with non-empty `name` and `description`;
-- skill names are unique;
-- referenced assets exist and are square SVGs;
-- OpenAI listing strings stay within current limits;
-- no secret-shaped files or symlinks enter the package;
-- no runtime claim is made unless actually executed.
+Validated:
 
-## Known submission blocker
+- root `plugin.json` against the Agent Plugins v1 schema constraints;
+- all eight skill names, descriptions, directory identities, and combined plugin/skill identity lengths;
+- `skills/perfect-eval/agents/openai.yaml` structure and policy fields;
+- OpenAI listing text/prompt/capability limits for the fields currently present;
+- brand color and relative asset paths;
+- square, positive SVG dimensions/viewBoxes for icon and light/dark logos;
+- mandatory no-subagent fallback and session-mode behavior by implementation inspection.
+
+Environment limitation: the local container could not resolve `github.com`, so a fresh local clone/plugin-install smoke test was not possible in this session. Repository contents were inspected through the connected GitHub plugin and deterministic checks were run against the committed content retrieved from GitHub. Do not claim clean-install smoke-test evidence until that test is actually run.
+
+## Known public-submission blocker
 
 Do not invent public publisher identity. Final public Plugin Directory submission requires verified publisher/listing details from the actual submitting identity. The repository owner name alone is not proof of the verified OpenAI developer identity.
 
 ## Next logical work
 
-1. Run package/schema validation against the exact current commit.
-2. Correct any validation issue without changing the product boundary.
-3. Test plugin discovery in a clean ChatGPT/plugin environment if that surface is available.
-4. Only when the verified publisher identity is supplied, complete public listing metadata and submission-readiness material.
+1. Smoke-test plugin discovery and behavior in a clean ChatGPT/plugin environment when that surface is available.
+2. Exercise both session-mode commands in a clean chat and confirm stage-ledger behavior with and without subagents.
+3. Only when the verified publisher identity is supplied, complete public listing metadata and submission-readiness material.
