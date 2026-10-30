@@ -14,5 +14,34 @@
     "regression",
     "review",
     "quality"
-  ]
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Perfect Eval",
+        "shortDescription": "Evidence-first eval workflows",
+        "longDescription": "Run a provider-agnostic, repository-agnostic evaluation and review workflow that classifies risk, writes capability and regression evals, verifies evidence, performs independent review, iterates with convergence limits, learns durable review rules, tests user-facing work from a first-time-user perspective, diagnoses reproducible bugs, and finishes with a regression sweep. Perfect Eval works in ordinary ChatGPT chat without subagents and can optionally use fresh-context workers when a host provides them. Human-in-the-loop is the default; the user can switch the current conversation to autonomous mode and back at any time.",
+        "capabilities": [
+          "Classify consequence-based risk before evaluation depth is chosen",
+          "Turn requirements, incidents, and bugs into capability and regression evals",
+          "Verify outcomes with evidence and avoid unsupported pass claims",
+          "Independently review work for failures the planned evals missed",
+          "Run bounded builder-verifier-reviewer loops with convergence rules",
+          "Convert repeated misses and false positives into durable review guidance",
+          "Test user-facing experiences from a first-time-user perspective",
+          "Diagnose reproducible bugs, prove root cause, and add regression protection",
+          "Compare models, providers, prompts, agents, and workflows under equivalent conditions",
+          "Use connected repository evidence without requiring GitHub Actions or a specific CI system"
+        ],
+        "defaultPrompt": [
+          "Use Perfect Eval to run the full evaluation workflow and prove whether this work is actually complete.",
+          "Use Perfect Eval to compare these candidates under the same task bank, graders, and decision rules.",
+          "Use Perfect Eval on this repository change, find regressions, diagnose failures, and verify the final state."
+        ],
+        "brandColor": "#111111",
+        "composerIcon": "./assets/icon.svg",
+        "logo": "./assets/logo-light.svg"
+      }
+    }
+  }
 }
