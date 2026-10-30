@@ -1,0 +1,17 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "perfecteval",
+  "version": "0.1.0",
+  "description": "Provider-agnostic evaluation workflow for designing, running, diagnosing, and maintaining trustworthy evals for models, agents, prompts, workflows, and repository-backed systems.",
+  "repository": "https://github.com/AahPlexX/perfecteval",
+  "keywords": [
+    "evaluation",
+    "evals",
+    "agents",
+    "llm",
+    "testing",
+    "benchmarking",
+    "regression",
+    "quality"
+  ]
+}
