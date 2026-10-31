@@ -13,6 +13,8 @@ Validated manifest blob: `ffcf1f6300e67bab34d2b701b074daccb769d58b`
 - Agent Plugins v1 manifest schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json
 - Agent Plugins v1 specification: https://agent-plugins.org/specification
 - Agent Skills specification: https://agentskills.io/specification
+- GitHub Actions workflow syntax/security guidance: https://docs.github.com/actions
+- Python release index: https://www.python.org/downloads/
 
 ## Checks executed
 
@@ -31,7 +33,7 @@ Result: PASS
 
 Result: PASS for package-level structure/limits checked here; public submission remains a separate gate.
 
-`extensions.com.openai.interface` now supplies non-identity presentation metadata:
+`extensions.com.openai.interface` supplies non-identity presentation metadata:
 
 - `displayName`: `Perfect Eval` — 12/30 characters.
 - `shortDescription`: `Evidence-first eval workflows` — 29/30 characters.
@@ -70,7 +72,7 @@ For all eight skills, prior deterministic validation checked:
 - unique skill identity;
 - combined `perfecteval:<skill-name>` identity <= 64 characters.
 
-Every specialized skill now states that it is a stage of Perfect Eval, not a competing default entry point, and routes back into the complete stage ledger unless the user explicitly requests stage-only work.
+Every specialized skill states that it is a stage of Perfect Eval, not a competing default entry point, and routes back into the complete stage ledger unless the user explicitly requests stage-only work.
 
 ### OpenAI skill metadata
 
@@ -109,15 +111,34 @@ Result: PASS by implementation inspection.
 - New chats reset to human mode unless the host supplies durable state.
 - Every source-workflow stage is accounted for in the mandatory stage ledger.
 - Specialized skill activation routes into the full ledger unless explicitly stage-only.
-- GitHub Actions are not required or added.
+- GitHub Actions are not a plugin runtime requirement. A maintainer-only packaging workflow may be used to validate and export the repository without changing the plugin contract.
 - Repository browsing is not treated as runtime test execution.
 - Review loops have convergence rules and hard-stop behavior.
 
+## Maintainer packaging automation
+
+Status at this revision: RED stage pending execution evidence.
+
+A repository-only workflow at `.github/workflows/package-plugin.yml` and a unit-test contract at `tests/test_package_plugin.py` are being introduced under test-driven development. The workflow is intentionally expected to fail until `scripts/package_plugin.py` is implemented in the subsequent GREEN stage.
+
+The workflow is designed to:
+
+- run on pushes to `main` and manual dispatch;
+- use read-only repository permissions;
+- use immutable commit-SHA pins for `actions/checkout` v7.0.1, `actions/setup-python` v7.1.0, and `actions/upload-artifact` v7.0.2;
+- pin Python to `3.15.2`;
+- run the repository unit tests;
+- build the plugin archive twice and require byte-identical results;
+- inspect the archive before upload;
+- upload the validated plugin ZIP as a workflow artifact.
+
+This automation is maintainer infrastructure only. Perfect Eval remains usable without GitHub Actions, GitHub, CI, or any specific provider.
+
 ## Environment limitation
 
-The local container available during this work cannot resolve `github.com`, so a direct local clone/archive round-trip and fresh ChatGPT install/discovery smoke test were not executed from that container. Repository contents were inspected and mutated through the connected GitHub plugin, and deterministic schema/length/metadata checks were executed against the committed manifest content.
+The local container available during the earlier work could not resolve `github.com`, so a direct local clone/archive round-trip and fresh ChatGPT install/discovery smoke test were not executed from that container. Repository contents were inspected and mutated through the connected GitHub plugin, and deterministic schema/length/metadata checks were executed against the committed manifest content.
 
-No claim is made that a fresh plugin installation has been smoke-tested yet.
+No claim is made yet that a fresh plugin installation has been smoke-tested.
 
 ## Public directory readiness boundary
 

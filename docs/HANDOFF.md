@@ -17,13 +17,15 @@ The repository currently satisfies the core product requirements:
 - full default stage ledger with explicit `not-applicable` handling;
 - all video-derived skills/roles represented and routed through the full workflow by default;
 - connected GitHub usable as an optional repository capability;
-- no GitHub Actions requirement;
+- no GitHub Actions runtime requirement;
 - convergence limits for review loops;
 - risk-scaled evaluation depth;
 - first-time-user testing;
 - root-cause bug diagnosis and regression creation;
 - learned rules from repeated misses or false positives;
 - evidence-backed execution claims only.
+
+A maintainer-only GitHub Actions packaging path is being added to create a reproducible plugin ZIP from `main`. It is repository infrastructure only and does not alter Perfect Eval's provider/repository independence.
 
 ## Canonical user commands
 
@@ -45,7 +47,7 @@ A new conversation starts in `human`. The latest explicit command controls the c
 - `skills/first-time-user/`
 - `skills/fix-a-bug/`
 
-Each specialized skill now declares that it is a stage of Perfect Eval. Unless the user explicitly asks for that stage only, it routes into the complete workflow or continues the remaining ledger sequentially if sibling-skill invocation is unavailable.
+Each specialized skill declares that it is a stage of Perfect Eval. Unless the user explicitly asks for that stage only, it routes into the complete workflow or continues the remaining ledger sequentially if sibling-skill invocation is unavailable.
 
 ## Architecture and acceptance
 
@@ -57,7 +59,7 @@ Each specialized skill now declares that it is a stage of Perfect Eval. Unless t
 
 The plugin uses root `plugin.json` with the Agent Plugins v1 schema. Portable packages discover the root `skills/` directory automatically. No MCP server is required.
 
-The root manifest now includes non-identity OpenAI presentation metadata under `extensions.com.openai.interface` so ChatGPT/Codex can present the product as **Perfect Eval** with accurate descriptions, capabilities, starter prompts, brand color, composer icon, and logo. Verified publisher-dependent fields remain intentionally unset.
+The root manifest includes non-identity OpenAI presentation metadata under `extensions.com.openai.interface` so ChatGPT/Codex can present the product as **Perfect Eval** with accurate descriptions, capabilities, starter prompts, brand color, composer icon, and logo. Verified publisher-dependent fields remain intentionally unset.
 
 ## Research basis
 
@@ -65,6 +67,7 @@ Primary/authoritative references used in the implementation include:
 
 - User-provided video: https://youtu.be/S49gppZl8H0
 - Anthropic code review article: https://claude.dev/blog/solving-code-review-at-anthropic/
+- Anthropic verification-loop guidance: https://claude.com/resources/articles/building-verification-loops-in-claude-code-with-skills
 - Anthropic eval guidance: https://www.anthropic.com/research/demystifying-evals-for-ai-agents
 - OpenAI eval best practices: https://developers.openai.com/api/docs/guides/evaluation-best-practices
 - OpenAI plugin docs: https://developers.openai.com/plugins
@@ -76,7 +79,7 @@ Primary/authoritative references used in the implementation include:
 - Google Cloud generative AI evaluation overview: https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/evaluation-overview
 - Microsoft Foundry generative AI evaluation guidance: https://learn.microsoft.com/en-us/azure/foundry/how-to/evaluate-generative-ai-app
 
-The video transcript explicitly identified write-evals, review-loop, first-time-user, fix-a-bug, classifier, builder, verifier, reviewer, orchestrator, and a separate code-review step. The implementation preserves these as skills or explicit roles.
+The 2026-10-30 research session retrieved a machine-readable transcript for the user-provided video. That transcript explicitly identified write-evals, review-loop, first-time-user, fix-a-bug, classifier, builder, verifier, reviewer, orchestrator, and a separate code-review step. The implementation preserves these as skills or explicit roles and corroborates operational behavior against first-party sources.
 
 ## Validation status
 
@@ -93,15 +96,23 @@ Current deterministic checks cover:
 - session-mode semantics;
 - full-stage routing from specialized skills.
 
-Environment limitation remains: the available local container cannot resolve `github.com`, so a clean archive clone and fresh ChatGPT/plugin-install discovery smoke test has not yet been executed. Do not convert static/package evidence into a claim that installation behavior was observed.
+A TDD packaging contract is being introduced:
+
+- `.github/workflows/package-plugin.yml` — read-only maintainer validation/package workflow;
+- `tests/test_package_plugin.py` — packager contract;
+- `scripts/package_plugin.py` — intentionally absent during the RED stage and to be implemented next.
+
+Until the workflow and packager complete successfully, do not claim the generated ZIP or private ChatGPT installation has been verified.
 
 ## Public-submission boundary
 
-Do not invent the verified publisher identity. Final public Plugin Directory submission still needs the actual verified `developerName`, dashboard category, and any other publisher-facing facts required by the submission surface. Package validity, local installation, submission, approval, and publication are separate states.
+Do not invent the verified publisher identity. Final public Plugin Directory submission still needs the actual verified `developerName`, dashboard category, and any other publisher-facing facts required by the submission surface. Package validity, private installation, submission, approval, and publication are separate states.
 
 ## Next logical work
 
-1. Build the exact repository archive in an environment with repository/network access and perform a clean plugin install/discovery smoke test.
-2. Exercise both session-mode commands in a new ChatGPT conversation and confirm that mode persists only within that conversation.
-3. Exercise one full workflow in an environment without subagents and, separately, with fresh-context workers when available; compare stage-ledger equivalence.
-4. Only after verified publisher identity/category are available, complete public-directory metadata and submission-readiness material.
+1. Observe the intentional RED workflow failure proving the packaging contract is active.
+2. Implement `scripts/package_plugin.py` to satisfy the tests and produce a deterministic portable ZIP containing only `plugin.json`, `skills/`, and `assets/`.
+3. Observe the GREEN workflow run, download its artifact, inspect the exact ZIP, and install it privately with Plugin Creator.
+4. Exercise both session-mode commands in a new ChatGPT conversation and confirm that mode persists only within that conversation.
+5. Exercise one full workflow without subagents and, separately, with fresh-context workers when available; compare stage-ledger equivalence.
+6. Only after verified publisher identity/category are available, complete public-directory metadata and submission-readiness material.

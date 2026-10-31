@@ -1,0 +1,55 @@
+name: Validate and package plugin
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: perfecteval-package-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.15.2'
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Build deterministic plugin archives
+        run: |
+          mkdir -p dist
+          python scripts/package_plugin.py --output dist/perfecteval-a.zip
+          python scripts/package_plugin.py --output dist/perfecteval-b.zip
+          cmp dist/perfecteval-a.zip dist/perfecteval-b.zip
+          mv dist/perfecteval-a.zip dist/perfecteval.zip
+          rm dist/perfecteval-b.zip
+          sha256sum dist/perfecteval.zip
+
+      - name: Inspect archive contents
+        run: python -m zipfile -l dist/perfecteval.zip
+
+      - name: Upload plugin package
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: perfecteval-plugin-${{ github.sha }}
+          path: dist/perfecteval.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

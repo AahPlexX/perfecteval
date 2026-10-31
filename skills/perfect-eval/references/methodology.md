@@ -1,6 +1,6 @@
 # Perfect Eval methodology
 
-Research snapshot: 2026-10-30T13:08:00-05:00.
+Research snapshot: refreshed 2026-10-30.
 
 This reference captures the primary-source reasoning behind the Perfect Eval workflow. It intentionally describes provider-neutral evaluation concepts rather than vendor-specific APIs.
 
@@ -10,9 +10,33 @@ The user-provided video was verified as the YouTube video **“Anthropic Just Re
 
 - https://youtu.be/S49gppZl8H0
 
-The available retrieval surface exposed the video identity but not a machine-readable transcript. Perfect Eval therefore does not invent or attribute unseen statements to the video. Its operational rules are corroborated against Anthropic's first-party evaluation guidance and independent first-party guidance from OpenAI and Google Cloud.
+During the 2026-10-30 research session, a machine-readable transcript was retrieved and used to enumerate the workflow names and roles discussed in the video, including write-evals, code review, review-loop, first-time-user, fix-a-bug, classifier, builder, verifier, reviewer, and orchestrator. Those video-derived workflow ideas are treated as design input, not as an authority for current vendor APIs or product behavior. Operational rules are corroborated against first-party Anthropic, OpenAI, Google Cloud, and Microsoft guidance.
 
 ## Primary sources
+
+### Anthropic — How the Claude Code team does code review
+
+https://claude.dev/blog/solving-code-review-at-anthropic/
+
+Key points used by Perfect Eval:
+
+- Review should happen continuously rather than only after implementation is declared complete.
+- Work should be verified with concrete evidence before review.
+- A fresh-context reviewer reduces self-review bias when available.
+- Risk should affect review depth and human approval expectations.
+- Repeated review misses should feed durable guidance and regression coverage.
+- Bounded review loops need convergence and stopping rules.
+- Incidents and discovered failures are valuable sources for future evals.
+
+### Anthropic — Building verification loops in Claude Code with skills
+
+https://claude.com/resources/articles/building-verification-loops-in-claude-code-with-skills
+
+Key points used by Perfect Eval:
+
+- Verification is a repeatable loop of checking work, observing failures, and correcting them before moving on.
+- Deterministic tool signals such as tests, linters, builds, and runtime errors should be used whenever available.
+- Manual verification procedures can be encoded as reusable skills so the same checks are applied consistently.
 
 ### Anthropic — Demystifying evals for AI agents
 
