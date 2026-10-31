@@ -84,6 +84,20 @@ The exact inner GREEN ZIP updated the existing private `perfecteval` plugin in p
 
 Do not publish account-specific Plugin Creator IDs, release IDs, or account email in this public repository. Resolve the existing owned private plugin before any future update; do not create a duplicate.
 
+## Final no-runtime-drift evidence
+
+Workflow run `41151144978`, job `124387694657`, completed successfully after the documentation synchronization.
+
+Artifact `13022559484` had GitHub-reported and independently computed outer SHA-256:
+
+`3b7315328f45e01da047c8972aeeaa50c2f62811b58b3fd345dee75d3e14493d`
+
+The inner portable ZIP SHA-256 was:
+
+`18cee08420a972f7d97ce4a12107f09ce51dd81e98fde1abfaed1a6ca710720d`
+
+That inner hash exactly matches the verified/installed `0.1.1` GREEN package. Later documentation-only changes therefore introduced no runtime-package drift.
+
 ## Current OpenAI submission facts
 
 Checked against current OpenAI submission docs on 2026-10-30:
@@ -95,6 +109,15 @@ Checked against current OpenAI submission docs on 2026-10-30:
 - Exact supported category is required for submission.
 - Verified publisher identity is selected during submission and must not be inferred from GitHub ownership or private-install normalization.
 - Four listing URLs are required for attached MCP review; skills-only metadata validation does not require all four.
+- Uploading a ZIP creates a draft; submitting for review and publishing after approval are separate lifecycle states.
+
+## Current submission-tool boundary
+
+The currently exposed Plugin Creator and Plugin Management tool surfaces were inspected after the private `0.1.1` update.
+
+Plugin Creator exposes private create/update/inspect/archive/release-list operations only. Plugin Management exposes discovery, dependency, permission, suggestion, and uninstall operations. Neither currently exposes a public-draft upload, `submit for review`, or `publish` action.
+
+Therefore a future agent in this same tool environment must not attempt to fabricate marketplace publication through private Plugin Creator operations. The next public-directory online step is the OpenAI Plugins dashboard: select the verified Developer identity, upload the already-verified `0.1.1` ZIP, resolve Metadata & Skills findings, complete required attestations, submit for review, and publish only after approval.
 
 ## Remaining behavioral validation
 
@@ -124,8 +147,8 @@ Private installation, draft upload, submission, approval, and publication are se
 
 ## Next logical work
 
-1. Check whether the currently exposed Plugin Creator/Plugin Management tools support creating or managing a public submission draft; if not, preserve the dashboard boundary explicitly.
-2. Exercise the installed private plugin from a fresh ChatGPT conversation and verify acceptance scenarios A1-A4 plus one complete 13-stage run without subagents.
-3. When fresh-context workers are available, compare stage-ledger equivalence against the single-agent run.
-4. Resolve actual publisher identity and any live-dashboard publisher/legal/listing facts before public submission.
-5. Upload a public draft only through the supported submission surface, resolve automated findings, complete required attestations, submit for review, and publish only after approval.
+1. Exercise the installed private plugin from a fresh ChatGPT conversation and verify acceptance scenarios A1-A4 plus one complete 13-stage run without subagents.
+2. When fresh-context workers are available, compare stage-ledger equivalence against the single-agent run.
+3. Resolve actual verified publisher identity and any live-dashboard publisher/legal/listing facts.
+4. Use the OpenAI Plugins dashboard to upload the verified `0.1.1` ZIP as a draft; resolve automated findings before submission.
+5. Complete required policy attestations, submit for review, and publish only after approval.

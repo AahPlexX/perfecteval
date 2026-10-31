@@ -133,7 +133,29 @@ A subsequent stored-release read confirmed:
 
 Account-specific backend IDs, release IDs, and account email are intentionally omitted from this public repository.
 
-## Current public-submission interpretation
+## Final no-runtime-drift verification
+
+The documentation synchronization commit triggered workflow run `41151144978`, job `124387694657`.
+
+Result: PASS.
+
+All workflow steps succeeded: checkout, exact Python setup, seven unit tests, deterministic double-build comparison, archive inspection, and artifact upload.
+
+Artifact ID: `13022559484`.
+
+GitHub-reported outer artifact SHA-256:
+
+`3b7315328f45e01da047c8972aeeaa50c2f62811b58b3fd345dee75d3e14493d`
+
+Independent inspection produced the same outer hash.
+
+Inner portable ZIP SHA-256:
+
+`18cee08420a972f7d97ce4a12107f09ce51dd81e98fde1abfaed1a6ca710720d`
+
+This exactly matches the installed `0.1.1` GREEN package, so the later documentation-only edits produced no runtime-package drift.
+
+## Current OpenAI submission interpretation
 
 Current OpenAI documentation states:
 
@@ -142,7 +164,16 @@ Current OpenAI documentation states:
 - exact category is required for public submission;
 - `publication.release_notes` is supported;
 - verified Developer identity is selected in the submission flow and must not be inferred from repository ownership;
-- four product/support/privacy/terms URLs are required for attached MCP review, while skills-only metadata validation does not require all four.
+- four product/support/privacy/terms URLs are required for attached MCP review, while skills-only metadata validation does not require all four;
+- package upload creates a draft, submission for review is separate, and publication is a later separate action after approval.
+
+## Submission-tool availability check
+
+The currently exposed Plugin Creator actions were inspected after the private `0.1.1` update. Available operations cover private plugin creation, update, file/archive inspection, metadata inspection, and release listing. No public-draft upload, submit-for-review, or publish action is exposed.
+
+The currently exposed Plugin Management actions cover discovery, dependencies, permissions, suggestions, and uninstall. No public submission/publication action is exposed there either.
+
+Therefore this conversation cannot honestly claim that a public directory draft was created. The verified ZIP is ready to be taken into the OpenAI Plugins dashboard, where the user must select the verified Developer identity, upload the ZIP, resolve automated findings, complete required attestations, submit for review, and publish only after approval.
 
 ## Remaining behavior/submission gaps
 
