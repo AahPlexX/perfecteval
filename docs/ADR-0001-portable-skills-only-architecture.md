@@ -5,11 +5,11 @@
 
 ## Context
 
-Perfect Eval must work across model providers and project types, in ordinary ChatGPT chat as well as environments that expose subagents, local workspaces, browsers, shells, or other advanced tools. The user also expects the connected GitHub plugin to be usable when repository evidence is relevant, without requiring GitHub Actions.
+Perfect Eval must work across model providers and project types, in ordinary ChatGPT chat as well as environments that expose subagents, local workspaces, browsers, shells, or other advanced tools. The user also expects the connected GitHub plugin to be usable when repository evidence is relevant, without requiring GitHub Actions at runtime.
 
 Current OpenAI plugin documentation recommends the portable Agent Plugins root `plugin.json` format and allows skills to work without an MCP server. Portable Agent Plugins discover skills from the root `skills/` directory automatically.
 
-OpenAI presentation metadata can live under `extensions.com.openai.interface`. Public-directory submission additionally requires publisher-dependent fields such as a verified developer name and category. Those values must not be inferred from a repository owner name.
+OpenAI presentation metadata can live under `extensions.com.openai.interface`. Public-directory submission additionally requires publisher/listing data and dashboard state that must not be inferred from a repository owner name or from private-install normalization.
 
 ## Decision
 
@@ -17,13 +17,14 @@ Perfect Eval will be a skills-only portable Agent Plugin.
 
 - Root manifest: `plugin.json` using Agent Plugins v1.
 - The root manifest embeds non-identity OpenAI presentation metadata: display name, descriptions, capabilities, starter prompts, brand color, composer icon, and logo.
-- Publisher-dependent listing fields remain unset until the verified submitting identity and actual listing facts are supplied.
+- Publisher-dependent public-listing fields remain source-controlled only when they are intentionally supplied for public submission; private-host normalization is not copied back automatically.
 - ChatGPT-specific presentation for the orchestrator also uses `skills/perfect-eval/agents/openai.yaml`.
 - Brand assets are declared from `assets/` using package-relative paths.
 - No bundled MCP server for the core workflow.
 - No provider API dependency.
-- No GitHub Actions dependency.
+- No GitHub Actions **runtime** dependency.
 - Connected GitHub or other host tools are optional capabilities used when available.
+- Repository-maintainer automation may validate/package Perfect Eval itself when explicitly authorized; it is outside the portable runtime package. See ADR-0002.
 - `perfect-eval` is the orchestrator and contains a complete single-agent fallback contract.
 - Specialized sibling skills implement the video-derived stages and route into the complete workflow unless explicitly invoked as stage-only work.
 - Human/autonomous mode is session-scoped conversation state established by explicit user input, not hidden persistent storage.
@@ -38,14 +39,16 @@ Perfect Eval will be a skills-only portable Agent Plugin.
 - Repository connectivity can be added by the host without changing the plugin architecture.
 - The core plugin has no external credential or service dependency.
 - ChatGPT/Codex can present the product as `Perfect Eval` with accurate starter prompts and capabilities.
-- No unverified publisher identity is embedded in the package.
+- Maintainer CI can produce reproducible release artifacts without becoming part of user-facing execution.
+- Source-controlled publisher identity is not silently rewritten from account-local private-install metadata.
 
 ### Tradeoffs
 
 - In a single-agent chat, reviewer independence is weaker than a true fresh-context reviewer, so Perfect Eval must disclose that limitation when material.
 - Session mode cannot truthfully persist across new chats without host-provided durable state; new conversations therefore reset to human-in-the-loop.
 - Runtime verification depends on tools exposed by the current host. When execution is unavailable, Perfect Eval must report runtime results as unverified.
-- Public-directory submission metadata must still be completed later using the actual verified publisher identity and dashboard category.
+- Private ChatGPT installation may normalize manifests or create compatibility files that differ from the portable source package; these generated files are host state, not source-of-truth architecture.
+- Public-directory submission metadata and attestations still require the actual submission lifecycle even after a private install succeeds.
 
 ## Rejected alternatives
 
@@ -53,5 +56,6 @@ Perfect Eval will be a skills-only portable Agent Plugin.
 - Mandatory MCP service: rejected because the core workflow needs procedures, not a dedicated external data/action service.
 - Mandatory subagents: rejected because ordinary ChatGPT chat must remain fully functional.
 - Mandatory GitHub Actions/CI: rejected because repository automation is not required to perform or specify the evaluation workflow.
-- Hiding all OpenAI presentation metadata until publication: rejected because non-identity presentation fields are useful and supported for portable packages without requiring fabricated publisher facts.
+- Packaging repository-maintainer automation into the plugin: rejected because it would confuse build infrastructure with runtime behavior and weaken portability.
+- Treating private Plugin Creator normalization as canonical source: rejected because host-generated compatibility/publisher fields are deployment state, not portable source authority.
 - Guessing `developerName` from the GitHub owner: rejected because repository ownership does not prove the verified OpenAI publisher identity.

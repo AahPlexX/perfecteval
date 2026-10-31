@@ -84,6 +84,24 @@ These scenarios define observable behavior for Perfect Eval independent of model
 
 ## A12 — Public listing identity is not inferred
 
-**Given** the repository owner is visible but the verified OpenAI publisher identity has not been supplied  
+**Given** the repository owner is visible but the verified OpenAI publisher identity has not been deliberately established for public submission  
 **When** packaging Perfect Eval  
-**Then** the portable plugin remains functional without invented plugin-level publisher metadata, and public-directory listing completion remains a separate step.
+**Then** the portable source plugin remains functional without invented public-listing identity metadata, and public-directory listing completion remains a separate step.
+
+## A13 — Maintainer package is deterministic and minimal
+
+**Given** the same repository revision is packaged twice with `scripts/package_plugin.py`  
+**When** both package builds complete successfully  
+**Then** the ZIP bytes are identical, the archive entries are deterministically ordered, and the package contains only `plugin.json`, `assets/**`, and `skills/**` without `.github/**`, `docs/**`, `scripts/**`, `tests/**`, or a wrapper directory.
+
+## A14 — Private install does not redefine portable source
+
+**Given** the validated portable ZIP is uploaded through Plugin Creator  
+**When** ChatGPT stores the private plugin release  
+**Then** installation may add account-derived metadata or compatibility files, but the portable repository source remains authoritative and those host-generated fields are not treated as proof of public-directory verification, approval, or publication.
+
+## A15 — Installation evidence is distinct from behavioral evidence
+
+**Given** Plugin Creator accepted the ZIP and the stored release inventory can be inspected  
+**When** the installed plugin has not yet been exercised in a fresh ChatGPT conversation  
+**Then** the project may report `private installation verified` but must not report session-mode behavior, implicit invocation, or full stage-ledger execution as smoke-tested in the installed host.
