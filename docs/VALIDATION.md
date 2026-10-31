@@ -1,7 +1,7 @@
 # Validation report
 
 Updated: 2026-10-30
-Current source candidate: `0.1.1` (GREEN implementation; CI pending at this revision)
+Current source/private version: `0.1.1`
 
 ## Authoritative contracts checked
 
@@ -13,37 +13,40 @@ Current source candidate: `0.1.1` (GREEN implementation; CI pending at this revi
 - Agent Skills specification: https://agentskills.io/specification
 - GitHub Actions guidance: https://docs.github.com/actions
 
-## Stable verified `0.1.0` evidence
+## Stable historical `0.1.0` evidence
 
-Portable packaging and private installation were verified before the public-metadata increment:
-
-- implementation commit: `8a3d0b918d3bead8fc6779aacb8ec5a790a5ea84`;
+- packaging implementation commit: `8a3d0b918d3bead8fc6779aacb8ec5a790a5ea84`;
 - successful workflow run: `41149191002`;
-- successful job: `124381364234`;
+- job: `124381364234`;
 - artifact ID: `13022281982`;
 - outer artifact SHA-256: `623c4fabde6802360af5b36e34c986e88a10b4b649646bfedfd0b29a07a5dbc6`;
-- inner portable ZIP SHA-256: `78dd7b5201a2dd3bc5abe67fa7da8955b4da9e6113c015869a46886cb3b5c57d`;
-- private Plugin Creator upload/install: PASS;
-- stored private release inventory inspection: PASS.
+- inner ZIP SHA-256: `78dd7b5201a2dd3bc5abe67fa7da8955b4da9e6113c015869a46886cb3b5c57d`;
+- private Plugin Creator installation: PASS;
+- stored release inventory inspection: PASS.
 
-A later documentation-only run `41149780988` also passed and reproduced the same inner portable ZIP hash, demonstrating that repository-only documentation did not change the runtime package.
+Documentation-only workflow run `41149780988` later reproduced the same inner `0.1.0` ZIP hash.
 
 ## Portable package contract
 
-Previously verified and still enforced by the packager:
+The current validator enforces:
 
-- root `plugin.json` uses the Agent Plugins v1 schema;
-- plugin name is lowercase kebab-case and bounded;
-- version uses strict semantic versioning;
-- `extensions.com.openai.interface` presentation limits are checked;
-- default prompts are bounded and unique after normalization;
-- brand colors use `#RRGGBB` syntax;
-- referenced assets use safe `./` relative paths and supported image types;
-- SVG icons/logos are square and at least 48x48;
-- every direct child under `skills/` contains valid `SKILL.md` frontmatter;
-- package rejects traversal paths, symlinks, transient/dependency paths, and secret-shaped files;
-- archive contains only `plugin.json`, `assets/**`, and `skills/**`;
-- ZIP entry ordering, timestamps, permissions, compression mode, and compression level are deterministic.
+- Agent Plugins v1 root schema identity;
+- lowercase kebab-case plugin name and semantic versioning;
+- OpenAI presentation field limits used by this package;
+- exact supported public category titles when category is present;
+- capabilities count/length;
+- default prompt count/length/normalized uniqueness;
+- reviewer prompt list max 20 and each prompt nonblank/max 4,000 characters;
+- optional public listing URLs are HTTPS, max 1,024 characters, with no embedded credentials;
+- optional release notes are nonblank;
+- optional country allowlists contain uppercase two-letter codes;
+- brand color syntax;
+- safe `./` asset paths and supported image types;
+- SVG icons/logos square and at least 48x48;
+- skill frontmatter identity/description rules;
+- traversal, symlink, transient/dependency, and secret-shaped-file rejection;
+- package boundary limited to `plugin.json`, `assets/**`, and `skills/**`;
+- deterministic ZIP ordering, timestamp, permissions, and compression settings.
 
 ## Public-directory metadata TDD
 
@@ -55,51 +58,94 @@ Job: `124384783098`
 
 Result: expected failure.
 
-Seven unit tests ran. Existing package behavior remained green, while the three new public-metadata checks failed exactly for the missing functionality:
+Seven tests ran. The four existing tests passed. Three new checks failed exactly for the intended missing behavior:
 
-- `test_public_candidate_metadata_is_present`: ERROR because `extensions.com.openai.review` was absent;
-- `test_invalid_public_category_is_rejected`: FAIL because an unsupported category produced no validator error;
-- `test_overlong_review_prompt_is_rejected`: FAIL because a 4,001-character review prompt produced no validator error.
+- missing `review` metadata;
+- unsupported category not rejected;
+- 4,001-character reviewer prompt not rejected.
 
-The workflow stopped before package creation/artifact upload, as intended.
+No unrelated regression appeared.
 
-### GREEN source candidate
+### GREEN
 
-The `0.1.1` candidate adds:
+Implementation commit: `fe3e75c85af28459e8c8a1f0a384c7bd67569211`
+Workflow run: `41150753395`
+Job: `124386429246`
+Artifact ID: `13022558764`
 
-- exact category `Developer Tools`;
+Result: PASS.
+
+All seven tests passed. The deterministic double-build comparison, archive inspection, and artifact upload also passed.
+
+GitHub reported outer artifact SHA-256:
+
+`c3b5482b9bf4d4e9a62e3c49c3ac1a9d123c68f46f29b3d10c6f11a5c5866ff9`
+
+Independent inspection produced the same outer hash.
+
+Inner portable plugin ZIP SHA-256:
+
+`18cee08420a972f7d97ce4a12107f09ce51dd81e98fde1abfaed1a6ca710720d`
+
+Inner ZIP inventory:
+
+- `assets/icon.svg`
+- `assets/logo-dark.svg`
+- `assets/logo-light.svg`
+- `plugin.json`
+- `skills/code-review/SKILL.md`
+- `skills/first-time-user/SKILL.md`
+- `skills/fix-a-bug/SKILL.md`
+- `skills/learned-rules/SKILL.md`
+- `skills/perfect-eval/SKILL.md`
+- `skills/perfect-eval/agents/openai.yaml`
+- `skills/perfect-eval/references/eval-contract.md`
+- `skills/perfect-eval/references/methodology.md`
+- `skills/perfect-eval/references/repository-mode.md`
+- `skills/perfect-eval/references/session-mode.md`
+- `skills/review-loop/SKILL.md`
+- `skills/risk-classifier/SKILL.md`
+- `skills/write-evals/SKILL.md`
+
+Confirmed absent: `.github/**`, `docs/**`, `scripts/**`, `tests/**`, and any wrapper directory.
+
+The inspected inner manifest reports version `0.1.1`, category `Developer Tools`, eight reviewer prompts, dark logo metadata, and release notes.
+
+## Private ChatGPT update verification
+
+Result: PASS for package acceptance/storage.
+
+The exact GREEN CI-produced `0.1.1` inner ZIP updated the existing owned private `perfecteval` plugin in place. Plugin Creator reported:
+
+- version `0.1.1`;
+- scope `USER`;
+- discoverability `PRIVATE`;
+- successful update status.
+
+A subsequent stored-release read confirmed:
+
+- stored version `0.1.1`;
+- category `Developer Tools`;
 - `logoDark: ./assets/logo-dark.svg`;
-- eight natural reviewer prompts;
-- `publication.release_notes`;
-- validator enforcement for the documented category set;
-- review prompt list max 20 and per-prompt max 4,000 characters;
-- optional HTTPS listing-URL validation when those fields are present;
-- nonblank optional release notes;
-- uppercase two-letter optional country codes.
+- all eight reviewer prompts;
+- release notes;
+- expected skill/asset inventory.
 
-At this documentation revision, the GREEN CI run has not yet been observed. Therefore:
-
-- source-level implementation status: GREEN candidate;
-- CI/package status for `0.1.1`: UNVERIFIED;
-- private installed version: still verified `0.1.0`;
-- public submission draft: NOT UPLOADED;
-- public review/approval/publication: NOT STARTED.
+Account-specific backend IDs, release IDs, and account email are intentionally omitted from this public repository.
 
 ## Current public-submission interpretation
 
 Current OpenAI documentation states:
 
-- `extensions.com.openai.review.prompts` may contain up to 20 nonblank strings, each at most 4,000 characters;
-- skills-only plugins do not need MCP-specific five-positive/three-negative review cases or a demo recording solely for being skills-only;
+- `extensions.com.openai.review.prompts` accepts up to 20 nonblank strings, each at most 4,000 characters;
+- skills-only plugins do not need MCP-specific five-positive/three-negative review cases, demo recording, or reviewer credentials solely for being skills-only;
 - exact category is required for public submission;
 - `publication.release_notes` is supported;
-- a verified Developer identity is selected during submission and must not be inferred from repository ownership;
-- the four product/support/privacy/terms URLs are required for attached MCP review, while skills-only metadata validation does not require all four.
+- verified Developer identity is selected in the submission flow and must not be inferred from repository ownership;
+- four product/support/privacy/terms URLs are required for attached MCP review, while skills-only metadata validation does not require all four.
 
-## Private-host normalization boundary
+## Remaining behavior/submission gaps
 
-The `0.1.0` private Plugin Creator install generated deployment-specific compatibility metadata, including account-derived author/developer values and a `.codex-plugin/plugin.json`. These host-generated values are not copied back into source control and are not evidence of public-directory publisher verification, final category selection, review approval, or publication.
+Fresh-chat behavior of the installed private plugin remains unverified from this conversation: activation, session-mode persistence/reset, and complete 13-stage execution still need a fresh-host smoke test.
 
-## Remaining behavior gap
-
-The installed private plugin has not yet been invoked from a fresh ChatGPT conversation in this session. Session-mode persistence, implicit/explicit activation, and complete stage-ledger execution in the installed host remain behavioral smoke-test items rather than package-validation claims.
+Public submission remains separate from private installation. No public draft has been uploaded in this validation sequence; review, approval, and publication have not started.
