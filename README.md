@@ -54,21 +54,17 @@ The specialized skills are stages of the full workflow rather than competing def
 
 Subagents are optional. If the host can spawn fresh-context workers, Perfect Eval may use them for independence or safe parallelism. If not, the primary agent executes the same roles sequentially and preserves role isolation by freezing evidence before switching roles and refusing to treat earlier unverified conclusions as facts.
 
-This means the plugin is intended to work in ordinary ChatGPT conversations as well as Work/Codex-style environments.
-
 ## Repository behavior
 
 Perfect Eval can use a connected GitHub plugin or another repository capability when available. Repository access is evidence/action infrastructure, not part of the eval methodology itself.
 
-The plugin does **not** require GitHub Actions. Its workflow instructions still prohibit adding CI/release automation unless the user explicitly authorizes it for the target repository.
-
-This repository now includes an explicitly authorized, maintainer-only packaging workflow. That workflow validates and exports Perfect Eval itself; it is not packaged into the plugin and is not a runtime dependency.
+The plugin does **not** require GitHub Actions. This repository includes an explicitly authorized, maintainer-only validation/package workflow, but that workflow is excluded from the plugin ZIP and is not a runtime dependency.
 
 Repository browsing is not test execution. If the host cannot execute tests, Perfect Eval reports runtime results as unverified rather than simulating them.
 
 ## Maintainer validation and packaging
 
-The repository contains a standard-library Python validator/packager plus a read-only GitHub Actions workflow:
+Repository tooling:
 
 ```text
 scripts/package_plugin.py
@@ -89,41 +85,44 @@ mkdir -p dist
 python scripts/package_plugin.py --output dist/perfecteval.zip
 ```
 
-The packager validates the portable manifest, skill frontmatter, presentation-field limits, referenced assets, unsafe paths, symlinks, and secret-shaped package files. It then writes a deterministic ZIP containing only the portable plugin surface: `plugin.json`, `assets/`, and `skills/`.
+The validator covers portable manifest structure, OpenAI presentation limits, supported public category titles, review-prompt limits, safe referenced assets, optional HTTPS listing URLs, skill frontmatter, unsafe paths, symlinks, secret-shaped files, and the deterministic portable package boundary. The ZIP contains only `plugin.json`, `assets/`, and `skills/`.
 
-The GitHub workflow uses read-only repository permissions, pinned action commit SHAs, an exact Python runtime, unit tests, two independent package builds with byte comparison, archive inspection, and artifact upload. See `docs/VALIDATION.md` and `docs/ADR-0002-deterministic-maintainer-packaging.md` for evidence and rationale.
+See `docs/VALIDATION.md` and `docs/ADR-0002-deterministic-maintainer-packaging.md` for execution evidence and rationale.
+
+## Public-directory preparation
+
+Source version: `0.1.1`.
+
+The `0.1.1` candidate adds repository-controlled public-directory metadata that can be established without guessing publisher identity:
+
+- category: `Developer Tools`;
+- light/dark listing logos;
+- natural reviewer prompts covering Perfect Eval's real workflows;
+- release notes for the candidate package.
+
+Current OpenAI guidance allows skills-only plugins to provide reviewer prompts and release notes without MCP-specific review cases, a demo recording, or reviewer credentials solely because the plugin is skills-only.
+
+The repository intentionally does **not** invent the verified public publisher identity, final publisher URLs, country targeting, commerce declarations, or legal/policy attestations. Private Plugin Creator normalization is deployment state, not proof of public-directory verification or approval.
+
+Canonical submission status lives in `docs/SUBMISSION.md`.
 
 ## Research basis
 
-The initial workflow synthesis was researched on 2026-10-30 from:
-
-- User-provided video: https://youtu.be/S49gppZl8H0
-- Anthropic first-party code-review guidance: https://claude.dev/blog/solving-code-review-at-anthropic/
-- Anthropic first-party verification-loop guidance: https://claude.com/resources/articles/building-verification-loops-in-claude-code-with-skills
-- Anthropic first-party eval guidance: https://www.anthropic.com/research/demystifying-evals-for-ai-agents
-- OpenAI evaluation best practices: https://developers.openai.com/api/docs/guides/evaluation-best-practices
-- OpenAI plugin and skills documentation: https://developers.openai.com/plugins
-- Agent Plugins v1 specification: https://agent-plugins.org/specification
-- Agent Skills specification: https://agentskills.io/specification
-- Google Cloud generative AI evaluation overview: https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/evaluation-overview
-- Microsoft Foundry generative AI evaluation guidance: https://learn.microsoft.com/en-us/azure/foundry/how-to/evaluate-generative-ai-app
-
-See `skills/perfect-eval/references/methodology.md` for the evidence-backed synthesis and source rationale.
+The workflow was researched on 2026-10-30 from the user-provided video plus first-party Anthropic, OpenAI, Google Cloud, Microsoft, Agent Plugins, and Agent Skills documentation. See `skills/perfect-eval/references/methodology.md` for the evidence-backed synthesis and source rationale.
 
 ## Plugin shape
 
 Perfect Eval uses the portable Agent Plugins v1 root `plugin.json` format and is skills-only: no MCP server, external runtime service, provider API key, or CI integration is required for the core workflow. Portable packages discover the root `skills/` directory automatically.
 
-The source manifest includes non-identity OpenAI presentation metadata under `extensions.com.openai.interface`: the user-facing `Perfect Eval` name, descriptions, capabilities, starter prompts, brand color, composer icon, and logo.
+OpenAI-specific presentation/review/publication metadata lives under `extensions.com.openai`. ChatGPT-specific presentation for the orchestrator also lives in `skills/perfect-eval/agents/openai.yaml`.
 
-ChatGPT-specific presentation for the orchestrator also lives in `skills/perfect-eval/agents/openai.yaml`.
+## Current verification status
 
-A private ChatGPT upload has been observed to normalize the stored release by adding account-derived author/developer metadata and a compatibility `.codex-plugin/plugin.json`. Those host-generated fields are deliberately **not** copied back into the portable source package. Private-install normalization is not treated as evidence that public Plugin Directory publisher verification, listing selection, attestations, review, or publication are complete.
+- `0.1.0` deterministic CI packaging: verified.
+- `0.1.0` exact CI ZIP private Plugin Creator installation: verified.
+- `0.1.1` public-metadata RED tests: observed failing for the intended missing behavior.
+- `0.1.1` GREEN source implementation: committed candidate; CI verification pending at this revision.
+- Fresh-chat behavior of the installed private plugin: not yet smoke-tested from this session.
+- Public draft upload/review/approval/publication: not started.
 
-## Current status
-
-Version: `0.1.0`
-
-The repository contains the implementation, brand assets, research references, deterministic validation/package automation, acceptance scenarios, and current handoff documentation. The exact CI-produced plugin ZIP has been installed successfully as a private ChatGPT plugin and its stored release inventory has been inspected.
-
-Remaining validation is behavioral rather than packaging-related: exercise Perfect Eval from a fresh ChatGPT conversation, verify the session-mode commands and complete stage ledger in the installed host, then test single-agent and fresh-context-worker execution paths. Public Plugin Directory submission remains a separate lifecycle requiring the actual publisher/listing facts and required dashboard attestations/review steps.
+See `docs/HANDOFF.md` for the exact continuation point and `docs/VALIDATION.md` for evidence IDs/hashes.

@@ -9,6 +9,7 @@ import sys
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Iterable
+from urllib.parse import urlparse
 from xml.etree import ElementTree
 
 PLUGIN_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
@@ -19,12 +20,33 @@ SEMVER_RE = re.compile(
     r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
 )
 HEX_COLOR_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
+SUPPORTED_CATEGORIES = frozenset(
+    {
+        "Business & Operations",
+        "Communication",
+        "Creativity",
+        "Data & Analytics",
+        "Developer Tools",
+        "Education & Research",
+        "Entertainment",
+        "Finance",
+        "Healthcare",
+        "Other",
+        "Productivity",
+        "Scientific Research",
+        "Security",
+        "Travel",
+    }
+)
 PACKAGE_DIRS = ("assets", "skills")
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
 MAX_ASSET_BYTES = 5 * 1024 * 1024
 ALLOWED_ASSET_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".svg"}
 DISALLOWED_PARTS = {".git", "node_modules", "__pycache__", ".pytest_cache", ".mypy_cache"}
-SECRET_NAME_RE = re.compile(r"(^\.env(?:\..*)?$|(?:^|[-_.])(secret|token|password)(?:[-_.]|$)|\.(?:pem|key)$|^id_rsa$)", re.IGNORECASE)
+SECRET_NAME_RE = re.compile(
+    r"(^\.env(?:\..*)?$|(?:^|[-_.])(secret|token|password)(?:[-_.]|$)|\.(?:pem|key)$|^id_rsa$)",
+    re.IGNORECASE,
+)
 
 
 def _scalar(frontmatter: str, key: str) -> str | None:
@@ -119,6 +141,15 @@ def _validate_asset(root: Path, field: str, manifest_value: object, errors: list
             errors.append(f"interface.{field} must be square: {manifest_value}")
 
 
+def _validate_https_url(field: str, value: object, errors: list[str]) -> None:
+    if not isinstance(value, str) or not value.strip() or len(value) > 1024:
+        errors.append(f"interface.{field} must be a non-empty HTTPS URL up to 1024 characters")
+        return
+    parsed = urlparse(value)
+    if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+        errors.append(f"interface.{field} must be an HTTPS URL without embedded credentials")
+
+
 def _validate_interface(root: Path, interface: object, errors: list[str]) -> None:
     if interface is None:
         return
@@ -140,6 +171,13 @@ def _validate_interface(root: Path, interface: object, errors: list[str]) -> Non
             errors.append(f"interface.{field} must be a non-empty string")
         elif len(value) > limit:
             errors.append(f"interface.{field} exceeds {limit} characters")
+
+    category = interface.get("category")
+    if category is not None and category not in SUPPORTED_CATEGORIES:
+        errors.append(
+            "interface.category must be an exact supported category title: "
+            + ", ".join(sorted(SUPPORTED_CATEGORIES))
+        )
 
     capabilities = interface.get("capabilities")
     if capabilities is not None:
@@ -174,6 +212,11 @@ def _validate_interface(root: Path, interface: object, errors: list[str]) -> Non
             errors.append("interface.defaultPrompt entries must be unique after normalization")
         normalized_prompts.add(normalized)
 
+    for field in ("websiteURL", "supportURL", "privacyPolicyURL", "termsOfServiceURL"):
+        value = interface.get(field)
+        if value is not None:
+            _validate_https_url(field, value, errors)
+
     for field in ("brandColor", "brandColorDark"):
         value = interface.get(field)
         if value is not None and (not isinstance(value, str) or not HEX_COLOR_RE.fullmatch(value)):
@@ -183,6 +226,51 @@ def _validate_interface(root: Path, interface: object, errors: list[str]) -> Non
         value = interface.get(field)
         if value is not None:
             _validate_asset(root, field, value, errors)
+
+
+def _validate_review(review: object, errors: list[str]) -> None:
+    if review is None:
+        return
+    if not isinstance(review, dict):
+        errors.append("extensions.com.openai.review must be an object")
+        return
+
+    prompts = review.get("prompts")
+    if prompts is None:
+        return
+    if not isinstance(prompts, list) or len(prompts) > 20:
+        errors.append("review.prompts must be a list with at most 20 entries")
+        return
+    for index, prompt in enumerate(prompts):
+        if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 4000:
+            errors.append(
+                f"review.prompts[{index}] must be a non-empty string up to 4000 characters"
+            )
+
+
+def _validate_publication(publication: object, errors: list[str]) -> None:
+    if publication is None:
+        return
+    if not isinstance(publication, dict):
+        errors.append("extensions.com.openai.publication must be an object")
+        return
+
+    release_notes = publication.get("release_notes")
+    if release_notes is not None and (
+        not isinstance(release_notes, str) or not release_notes.strip()
+    ):
+        errors.append("publication.release_notes must be a non-empty string when provided")
+
+    countries = publication.get("countries")
+    if countries is not None:
+        if not isinstance(countries, list) or any(
+            not isinstance(country, str)
+            or len(country) != 2
+            or country.upper() != country
+            or not country.isalpha()
+            for country in countries
+        ):
+            errors.append("publication.countries must contain uppercase two-letter country codes")
 
 
 def _validate_manifest(root: Path, errors: list[str]) -> dict[str, object] | None:
@@ -227,6 +315,8 @@ def _validate_manifest(root: Path, errors: list[str]) -> dict[str, object] | Non
                     errors.append("extensions.com.openai must be an object")
                 else:
                     _validate_interface(root, openai_extension.get("interface"), errors)
+                    _validate_review(openai_extension.get("review"), errors)
+                    _validate_publication(openai_extension.get("publication"), errors)
 
     return manifest
 
@@ -237,7 +327,9 @@ def _validate_skills(root: Path, errors: list[str]) -> None:
         errors.append("skills/ must exist as a regular directory")
         return
 
-    skill_dirs = sorted(path for path in skills_root.iterdir() if path.is_dir() and not path.is_symlink())
+    skill_dirs = sorted(
+        path for path in skills_root.iterdir() if path.is_dir() and not path.is_symlink()
+    )
     if not skill_dirs:
         errors.append("skills/ must contain at least one skill directory")
         return
@@ -289,11 +381,17 @@ def _package_files(root: Path) -> list[Path]:
                 continue
             relative = path.relative_to(root)
             if path.is_symlink():
-                raise ValueError(f"symlinks are not allowed in plugin packages: {relative.as_posix()}")
+                raise ValueError(
+                    f"symlinks are not allowed in plugin packages: {relative.as_posix()}"
+                )
             if any(part in DISALLOWED_PARTS for part in relative.parts):
-                raise ValueError(f"transient/dependency path is not allowed: {relative.as_posix()}")
+                raise ValueError(
+                    f"transient/dependency path is not allowed: {relative.as_posix()}"
+                )
             if SECRET_NAME_RE.search(path.name):
-                raise ValueError(f"secret-shaped file is not allowed in the package: {relative.as_posix()}")
+                raise ValueError(
+                    f"secret-shaped file is not allowed in the package: {relative.as_posix()}"
+                )
             files.append(path)
     return sorted(set(files), key=lambda path: path.relative_to(root).as_posix())
 
@@ -312,7 +410,9 @@ def validate_plugin(root: Path | str) -> list[str]:
 
     for path in package_files:
         if not path.is_file() or path.is_symlink():
-            errors.append(f"packaged path is not a regular file: {path.relative_to(root).as_posix()}")
+            errors.append(
+                f"packaged path is not a regular file: {path.relative_to(root).as_posix()}"
+            )
 
     return errors
 
@@ -359,7 +459,9 @@ def _print_errors(errors: Iterable[str]) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate and deterministically package Perfect Eval.")
+    parser = argparse.ArgumentParser(
+        description="Validate and deterministically package Perfect Eval."
+    )
     parser.add_argument("--root", type=Path, default=Path.cwd(), help="Plugin repository root")
     parser.add_argument("--output", type=Path, help="ZIP path to create")
     parser.add_argument("--check", action="store_true", help="Validate without creating an archive")

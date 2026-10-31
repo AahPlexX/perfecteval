@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "perfecteval",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Provider-agnostic evaluation and review workflows for proving work is done, finding regressions, comparing candidates, diagnosing failures, and maintaining durable quality gates across models, agents, prompts, products, and repositories.",
   "repository": "https://github.com/AahPlexX/perfecteval",
   "keywords": [
@@ -21,6 +21,7 @@
         "displayName": "Perfect Eval",
         "shortDescription": "Evidence-first eval workflows",
         "longDescription": "Run a provider-agnostic, repository-agnostic evaluation and review workflow that classifies risk, writes capability and regression evals, verifies evidence, performs independent review, iterates with convergence limits, learns durable review rules, tests user-facing work from a first-time-user perspective, diagnoses reproducible bugs, and finishes with a regression sweep. Perfect Eval works in ordinary ChatGPT chat without subagents and can optionally use fresh-context workers when a host provides them. Human-in-the-loop is the default; the user can switch the current conversation to autonomous mode and back at any time.",
+        "category": "Developer Tools",
         "capabilities": [
           "Classify consequence-based risk before evaluation depth is chosen",
           "Turn requirements, incidents, and bugs into capability and regression evals",
@@ -40,7 +41,23 @@
         ],
         "brandColor": "#111111",
         "composerIcon": "./assets/icon.svg",
-        "logo": "./assets/logo-light.svg"
+        "logo": "./assets/logo-light.svg",
+        "logoDark": "./assets/logo-dark.svg"
+      },
+      "review": {
+        "prompts": [
+          "Use Perfect Eval to run the full evaluation workflow on this work and prove whether it is complete.",
+          "Write capability and regression evals for this agent workflow, then identify the highest-risk untested behavior.",
+          "Compare these two model or prompt candidates under the same eval contract and recommend one from the evidence.",
+          "Independently review this implementation for regressions the planned tests missed, and classify each finding by severity.",
+          "Run the full Perfect Eval workflow without subagents and show how every required stage is accounted for in the evidence ledger.",
+          "Diagnose this reproducible bug, prove the root cause, fix it if authorized, and add regression protection.",
+          "Evaluate this user-facing flow from a first-time-user perspective, including accessibility, errors, and recovery.",
+          "Switch Perfect Eval to autonomous mode for this chat, then evaluate this work without routine approval pauses."
+        ]
+      },
+      "publication": {
+        "release_notes": "Initial public-directory candidate for Perfect Eval: provider-agnostic evaluation orchestration with risk classification, capability and regression evals, evidence verification, independent review, bounded review loops, first-time-user testing, bug diagnosis, learned rules, session-scoped human/autonomous modes, and a complete no-subagent fallback."
       }
     }
   }
